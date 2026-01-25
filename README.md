@@ -1,6 +1,17 @@
-# Spheni
+<p align="center">
+    <img src="media/spheni.png" size="100">
+</p>
 
-An in-memory exact Vector Search Engine
+<p align="center">
+    <b>Spheni - An in-memory Vector Search Engine</b>.<br/>
+    [WORK IN PROGRESS]
+</p>
+
+<p align="center">
+  <a href="https://github.com/datavorous/spheni/blob/master/LICENSE" target="_blank">
+      <img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg" alt="License">
+  </a>
+</p>
 
 > [!CAUTION]
 > This is still a work-in-progress, and not ready for use.
@@ -38,6 +49,45 @@ int main() {
     return 0;
 }
 ```
+
+## Todo
+
+- [ ] Flat Index Optimization
+    - [ ] reducing the latency using memory locality, SIMD acceleration, and threading
+    - [ ] replace heapTopK, precompute L2 norms, write SIMD kernels
+- [ ] IVF-Flat (ANN) implementation
+    - [ ] kmeans training, and nprobe search
+- [ ] memory reduction (scalar INT8 first). benchmark: FP32 Flat, INT8 Flat, IVF + INT8
+- [ ] add save and load
+
+additionally benchmark and plot recall vs latency in each step.
+
+## Benchmarks
+
+### SIFT1M Benchmark
+
+### Flat Index
+
+| Category        | Metric          | Value        |
+|-----------------|-----------------|-------------|
+| Dataset         | Base vectors    | 1,000,000   |
+|                 | Query vectors   | 10,000      |
+|                 | Dimension       | 128         |
+| Loading         | Load time       | ~420 ms      |
+| Indexing        | Build time      | ~260 ms      |
+|                 | Indexed vectors| 1,000,000   |
+| Configuration  | k               | 10          |
+|                 | Max queries     | 100         |
+|                 | Warmup queries | 5           |
+| Accuracy        | Recall@10       | 99.90%      |
+| Latency (ms)   | p50             | ~104.5     |
+|                 | p95             | ~105.2     |
+|                 | p99             | ~106.8     |
+|                 | Max             | ~108.4     |
+|                 | Mean            | ~104.5     |
+| Performance     | Throughput     | 9.6 QPS     |
+| Build Flags     | Compiler        | g++ -O3 C++20 |
+
 
 ## References
 
