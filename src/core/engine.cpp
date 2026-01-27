@@ -35,6 +35,11 @@ std::vector<SearchHit> Engine::search(std::span<const float> query, int k) const
     return index_->search(query, params);
 }
 
+std::vector<SearchHit> Engine::search(std::span<const float> query, int k, int nprobe) const {
+    SearchParams params(k, nprobe);
+    return index_->search(query, params);
+}
+
 std::vector<std::vector<SearchHit>> Engine::search_batch(std::span<const float> queries, int k) const {
     int d = index_->dim();
     long long n = queries.size() / d;
@@ -42,7 +47,7 @@ std::vector<std::vector<SearchHit>> Engine::search_batch(std::span<const float> 
 
     for (long long i = 0; i < n; ++i) {
         std::span<const float> query(queries.data() + i * d, d);
-        results.push_back(search(query, k));
+        results.push_back(search(query, k, 1));
     }
 
     return results;

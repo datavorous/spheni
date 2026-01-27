@@ -1,100 +1,221 @@
 <p align="center">
-    <img src="media/spheni.png" size="100">
+  <img src="media/spheni.png" width="700">
+</p>
+
+<h2 align="center">Spheni</h2>
+
+<p align="center">
+  A minimal, CPU-first, in-memory vector search library in C++.
 </p>
 
 <p align="center">
-    <b>Spheni - An in-memory Vector Search Engine</b>.<br/>
-    [WORK IN PROGRESS]
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg"></a>
 </p>
 
-<p align="center">
-  <a href="https://github.com/datavorous/spheni/blob/master/LICENSE" target="_blank">
-      <img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg" alt="License">
-  </a>
-</p>
+## Index
 
-> [!CAUTION]
-> This is still a work-in-progress, and not ready for use.
-> Aim is to implement ANN algorithms and quanitzation techniques.
+1. [Overview](#overview)
+2. [Features](#features)
+3. [Status](#status)
+4. [Installation](#installation)
+5. [Examples](#minimal-example)
+6. [Benchmarks](#benchmarks)
+7. [Design Notes](#design-notes)
+8. [Roadmap](#roadmap)
+9. [References](#references)
+
+## Overview
+
+The goal of Spheni is not feature breadth, but a clean reference implementation of modern vector search primitives with transparent performance characteristics.
+
+It currently provides:
+
+1. Exact search via **Flat index**
+2. Approximate nearest neighbor search via **IVF-Flat**
+3. Cosine similarity and L2 distance
+4. Top-K queries with predictable tail latency
+5. Simple, explicit API (`Engine`, `IndexSpec`, `SearchParams`)
+6. Single-node, CPU-only execution
+
+This project is early-stage and intentionally minimal.
+
+## Features
+
+### Indexes
+1. **Flat (exact)**: Brute-force scan with Top-K heap selection.
+2. **IVF-Flat (ANN)**: K-means clustering + inverted lists with `nprobe` search.
+
+### Metrics
+1. **Cosine similarity** (dot product on L2-normalized vectors)
+2. **L2 distance** (implemented as negative squared L2 for ranking)
+
+Higher score is always better.
+
+### Core capabilities
+1. Automatic ID assignment or user-provided 64-bit IDs
+2. Batch add and batch search
+3. Optional vector normalization (for cosine)
+4. Deterministic IVF training (fixed RNG seed by default)
+
+## Status
+
+Spheni is usable for experimentation and benchmarking, but not production-ready.
+
+Current limitations:
+
+- No persistence (save/load)
+- No multithreading
+- No SIMD kernels
+- No deletion or updates
+- Limited parameter validation
+- IVF uses brute-force centroid assignment
+
+These are deliberate omissions in v0.2.
+
+## Installation
+
+Build the static library:
+
+```bash
+bash build_spheni.sh
+```
+
+This produces:
+
+```bash
+build/libspheni.a
+```
+
+Then include headers from `spheni/` and link against `libspheni.a`.
+
 
 ## Minimal Example
 
-Build a static library (`libspheni.a`) using `bash build_spheni.sh` and use it.
-
 ```cpp
 #include "spheni/engine.h"
-#include <iostream>
 #include <vector>
 #include <span>
+#include <iostream>
 
 int main() {
-    // index specs: 3 dimensions, L2 distance, Flat index, normalization
+    // 3D vectors, L2 metric, Flat index, no normalization
     spheni::IndexSpec spec(3, spheni::Metric::L2, spheni::IndexKind::Flat, false);
     spheni::Engine engine(spec);
 
-    // some dummy data (3 vectors of 3 dimensions)
-    std::vector<float> data = {1.0f, 0.0f, 0.0f,
-                               0.0f, 1.0f, 0.0f,
-                               0.0f, 0.0f, 1.0f};
+    std::vector<float> data = {
+        1,0,0,
+        0,1,0,
+        0,0,1
+    };
 
     engine.add(std::span<const float>(data));
 
-    // search for a vector close to the second entry [0, 1, 0]
     std::vector<float> query = {0.1f, 0.9f, 0.0f};
-    auto results = engine.search(std::span<const float>(query), 1);
 
-    std::cout << "Top Hit ID: " << results[0].id << " Score: " << results[0].score << std::endl;
-    // output: Top Hit ID: 1 Score: -0.02
+    auto hits = engine.search(std::span<const float>(query), 1);
 
-    return 0;
+    std::cout << "ID: " << hits[0].id
+              << " Score: " << hits[0].score << std::endl;
 }
 ```
 
-## Todo
+## IVF Usage
 
-- [ ] Flat Index Optimization
-    - [ ] reducing the latency using memory locality, SIMD acceleration, and threading
-    - [ ] replace heapTopK, precompute L2 norms, write SIMD kernels
-- [ ] IVF-Flat (ANN) implementation
-    - [ ] kmeans training, and nprobe search
-- [ ] memory reduction (scalar INT8 first). benchmark: FP32 Flat, INT8 Flat, IVF + INT8
-- [ ] add save and load
+```cpp
+spheni::IndexSpec spec(
+    128,
+    spheni::Metric::L2,
+    spheni::IndexKind::IVF,
+    false,
+    /* nlist = */ 256
+);
 
-additionally benchmark and plot recall vs latency in each step.
+spheni::Engine engine(spec);
+
+// add vectors (training triggers automatically once n >= nlist)
+engine.add(vectors);
+
+spheni::SearchParams params;
+params.k = 10;
+params.nprobe = 16;
+
+auto hits = engine.search(query, params);
+```
+
+### IVF behavior
+
+1. Training happens automatically once `added_vectors >= nlist`
+2. Before training, searches fall back to flat scan
+3. After training:
+
+  1. Query -> nearest centroids
+  2. Scan `nprobe` inverted lists
+  3. Rank using Top-K heap
 
 ## Benchmarks
 
-### SIFT1M Benchmark
+Tested on:
 
-### Flat Index
+* Intel i7-8650U (4C/8T)
+* GCC 13 (`-O3 -march=native`)
+* 50k vectors (SIFT1M subset)
+* Dimension: 128
+* Metric: L2
+* Single-threaded
 
-| Category        | Metric          | Value        |
-|-----------------|-----------------|-------------|
-| Dataset         | Base vectors    | 1,000,000   |
-|                 | Query vectors   | 10,000      |
-|                 | Dimension       | 128         |
-| Loading         | Load time       | ~420 ms      |
-| Indexing        | Build time      | ~260 ms      |
-|                 | Indexed vectors| 1,000,000   |
-| Configuration  | k               | 10          |
-|                 | Max queries     | 100         |
-|                 | Warmup queries | 5           |
-| Accuracy        | Recall@10       | 99.90%      |
-| Latency (ms)   | p50             | ~104.5     |
-|                 | p95             | ~105.2     |
-|                 | p99             | ~106.8     |
-|                 | Max             | ~108.4     |
-|                 | Mean            | ~104.5     |
-| Performance     | Throughput     | 9.6 QPS     |
-| Build Flags     | Compiler        | g++ -O3 C++20 |
+### Flat (exact)
 
+| Recall@10 | Mean    | p99     |
+| --------- | ------- | ------- |
+| 99.0%     | 5.27 ms | 5.75 ms |
+
+### IVF-256
+
+| nprobe | Recall | Mean     | Speedup |
+| ------ | ------ | -------- | ------- |
+| 16     | 97.1%  | 0.416 ms | 12.6x   |
+
+Full report: [`docs/benchmarks.md`](docs/benchmarks.md)
+
+These results demonstrate the expected recall/latency trade-off of IVF on CPU.
+
+## Design Notes
+
+* Scores are always "higher is better"
+* Cosine uses normalized vectors + dot product
+* L2 uses negative squared distance
+* Top-K uses a min-heap (`O(N log K)`)
+* IVF training uses k-means++ initialization with deterministic seed
+
+See:
+
+1. [`docs/benchmarks.md`](docs/benchmarks.md)
+2. [`docs/v0.1.md`](docs/v0.1.md)
+3. [`docs/v0.2.md`](docs/v0.2.md)
+
+## Roadmap
+
+Short term:
+
+- [ ] Parameter validation + explicit error handling
+- [ ] Expose IVF training state
+- [ ] Improve IVF memory locality
+- [ ] Flat index optimizations
+
+Longer term:
+
+- [ ] SIMD kernels
+- [ ] Multithreading
+- [ ] Persistence
+- [ ] Quantized storage (INT8)
+- [ ] Additional ANN structures
 
 ## References
 
-1. [In Search of the History of the Vector Database](https://sw2.beehiiv.com/p/search-history-vector-database)
-2. [A Comprehensive Survey on Vector Database: Storage and Retrieval Technique, Challenge](https://arxiv.org/pdf/2310.11703)
-3. [Near Neighbor Search in Large Metric Spaces](https://vldb.org/conf/1995/P574.PDF)
-4. [The Binary Vector as the Basis of an Inverted Index File](https://ital.corejournals.org/index.php/ital/article/view/8961/8080)
-5. [A vector space model for automatic indexing](https://dl.acm.org/doi/epdf/10.1145/361219.361220)
-6. [MicroNN: An On-device Disk-resident Updatable Vector Database](https://arxiv.org/pdf/2504.05573)
-7. [The FAISS Library](https://arxiv.org/pdf/2401.08281)
+1. FAISS: [ArXiv Paper](https://arxiv.org/pdf/2401.08281)
+2. [Near Neighbor Search in Large Metric Spaces](https://vldb.org/conf/1995/P574.PDF)
+3. [The Binary Vector as the Basis of an Inverted Index File](https://ital.corejournals.org/index.php/ital/article/view/8961/8080)
+
+## License
+
+Apache 2.0

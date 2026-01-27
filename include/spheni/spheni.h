@@ -12,7 +12,8 @@ enum class Metric {
 };
 
 enum class IndexKind {
-    Flat
+    Flat,
+    IVF
 };
 
 struct IndexSpec {
@@ -23,11 +24,17 @@ struct IndexSpec {
     IndexKind kind;
 
     IndexSpec(int d, Metric m, IndexKind k, bool norm = true): dim(d), metric(m), normalize(norm), kind(k) {}
+
+    int nlist;
+    IndexSpec(int d, Metric m, IndexKind k, int nl, bool norm = true): dim(d), metric(m), normalize(norm), kind(k), nlist(nl) {}
 };
 
 struct SearchParams {
     int k;
     SearchParams(int k_) : k(k_) {}
+
+    int nprobe;
+    SearchParams(int k_, int np) : k(k_), nprobe(np) {}
 };
 
 struct SearchHit {

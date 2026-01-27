@@ -15,7 +15,9 @@ add_library(spheni STATIC
     src/core/engine.cpp
     src/core/factory.cpp
     src/core/flat_index.cpp
+    src/core/ivf_index.cpp
     src/utils/kernels.cpp
+    src/utils/kmeans.cpp
     src/utils/topk.cpp
 )
 
