@@ -21,6 +21,11 @@ add_library(spheni STATIC
     src/utils/topk.cpp
 )
 
+find_package(OpenMP)
+if(OpenMP_CXX_FOUND)
+    target_link_libraries(spheni PUBLIC OpenMP::OpenMP_CXX)
+endif()
+
 target_include_directories(spheni PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
@@ -28,4 +33,3 @@ target_include_directories(spheni PUBLIC
 target_include_directories(spheni PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
-

@@ -31,7 +31,7 @@ The goal of Spheni is not feature breadth, but a clean reference implementation 
 It currently provides:
 
 1. Exact search via **Flat index**
-2. Approximate nearest neighbor search via **IVF-Flat**
+2. Approximate nearest neighbor search via **IVF-Flat** (OpenMP batch-parallel)
 3. Cosine similarity and L2 distance
 4. Top-K queries with predictable tail latency
 5. Simple, explicit API (`Engine`, `IndexSpec`, `SearchParams`)
@@ -56,6 +56,7 @@ Higher score is always better.
 2. Batch add and batch search
 3. Optional vector normalization (for cosine)
 4. Deterministic IVF training (fixed RNG seed by default)
+5. Batch-parallel query execution via OpenMP
 
 ## Status
 
@@ -64,13 +65,12 @@ Spheni is usable for experimentation and benchmarking, but not production-ready.
 Current limitations:
 
 - No persistence (save/load)
-- No multithreading
 - No SIMD kernels
 - No deletion or updates
 - Limited parameter validation
 - IVF uses brute-force centroid assignment
 
-These are deliberate omissions in v0.2.
+These are deliberate omissions in the current early-stage release.
 
 ## Installation
 
@@ -175,6 +175,13 @@ Tested on:
 | ------ | ------ | -------- | ------- |
 | 16     | 97.1%  | 0.416 ms | 12.6x   |
 
+### IVF-256 (OpenMP, batch queries)
+
+| Recall@10 | Mean     | p99     | Throughput |
+| --------- | -------- | ------- | ---------- |
+| 97.11%    | 0.176 ms | 0.287 ms| 5,710 QPS  |
+
+
 Full report: [`docs/benchmarks.md`](docs/benchmarks.md)
 
 These results demonstrate the expected recall/latency trade-off of IVF on CPU.
@@ -192,6 +199,7 @@ See:
 1. [`docs/benchmarks.md`](docs/benchmarks.md)
 2. [`docs/v0.1.md`](docs/v0.1.md)
 3. [`docs/v0.2.md`](docs/v0.2.md)
+4. [`docs/v0.3.md`](docs/v0.3.md)
 
 ## Roadmap
 
@@ -205,7 +213,7 @@ Short term:
 Longer term:
 
 - [ ] SIMD kernels
-- [ ] Multithreading
+- [x] Multithreading (just query search)
 - [ ] Persistence
 - [ ] Quantized storage (INT8)
 - [ ] Additional ANN structures

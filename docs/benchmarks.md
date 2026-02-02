@@ -88,3 +88,13 @@ The p99 latencies are remarkably stable across all IVF tests, typically staying 
 
 ![Tail latency distribution](../media/graphs/latency_distribution.png)
 *CDF of per-query latency showing tight p99 spread.*
+
+## 5. Parallel Batch Query Execution (OpenMP)
+
+**Date:** February 2, 2026
+
+Enabling OpenMP batch query parallelism (OMP=4) on the IVF-256 / nprobe-16 configuration increases throughput from `2,405 QPS` to `5,710 QPS` (`2.37x`) while preserving Recall@10 at `97.11%`. Mean per-query latency over a fixed batch workload improves from `0.416 ms` to `0.176 ms` (`2.36x`), and p99 tail latency reduces from `0.554 ms` to `0.287 ms` (`1.93x`).
+
+Parallelism is applied across independent queries, without modifying the underlying index or search logic.
+
+All values are averaged over 5 runs.

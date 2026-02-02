@@ -4,6 +4,9 @@
 #include "utils/topk.h"
 #include <algorithm>
 #include <limits>
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 namespace spheni {
 
@@ -149,11 +152,14 @@ std::vector<SearchHit> IVFIndex::search(std::span<const float> query, const Sear
     }
     const float *query_ptr = query_copy.data();
 
-    std::vector<std::pair<float, int>> centroid_dists;
+    std::vector<std::pair<float, int>> centroid_dists(spec_.nlist);
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
     for(int c = 0; c < spec_.nlist; c++) {
         const float* centroid = centroids_.data() + c * spec_.dim;
         float dist = kernels::l2_squared(query_ptr, centroid, spec_.dim);
-        centroid_dists.emplace_back(dist, c);
+        centroid_dists[c] = {dist, c};
     }
 
     std::partial_sort(
@@ -161,10 +167,42 @@ std::vector<SearchHit> IVFIndex::search(std::span<const float> query, const Sear
         centroid_dists.begin() + std::min(params.nprobe, spec_.nlist),
         centroid_dists.end());
 
-    TopK topk(params.k);    
-    
-    
-    for(int p = 0; p < std::min(params.nprobe, spec_.nlist); p++) {
+    const int nprobe = std::min(params.nprobe, spec_.nlist);
+    TopK topk(params.k);
+
+#ifdef _OPENMP
+    const int max_threads = omp_get_max_threads();
+    std::vector<TopK> local_topks;
+    local_topks.reserve(max_threads);
+    for (int t = 0; t < max_threads; ++t) {
+        local_topks.emplace_back(params.k);
+    }
+
+#pragma omp parallel
+    {
+        const int tid = omp_get_thread_num();
+        TopK& local_topk = local_topks[tid];
+#pragma omp for schedule(dynamic)
+        for(int p = 0; p < nprobe; p++) {
+            int cluster = centroid_dists[p].second;
+            long long cluster_size = cluster_ids_[cluster].size();
+
+            for(long long i = 0; i < cluster_size; i++) {
+                const float* vec = cluster_vectors_[cluster].data() + i * spec_.dim;
+                float score = compute_score(query_ptr, vec);
+                local_topk.push(cluster_ids_[cluster][i], score);
+            }
+        }
+    }
+
+    for (auto& local_topk : local_topks) {
+        auto local_results = local_topk.sorted_results();
+        for (const auto& hit : local_results) {
+            topk.push(hit.id, hit.score);
+        }
+    }
+#else
+    for(int p = 0; p < nprobe; p++) {
         int cluster = centroid_dists[p].second;
         long long cluster_size = cluster_ids_[cluster].size();
 
@@ -174,6 +212,7 @@ std::vector<SearchHit> IVFIndex::search(std::span<const float> query, const Sear
             topk.push(cluster_ids_[cluster][i], score);
         }
     }
+#endif
 
     return topk.sorted_results();
 }
