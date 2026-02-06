@@ -64,7 +64,6 @@ Spheni is usable for experimentation and benchmarking, but not production-ready.
 
 Current limitations:
 
-- No persistence (save/load)
 - No SIMD kernels
 - No deletion or updates
 - Limited parameter validation
@@ -94,7 +93,6 @@ Then include headers from `spheni/` and link against `libspheni.a`.
 ```cpp
 #include "spheni/engine.h"
 #include <vector>
-#include <span>
 #include <iostream>
 
 int main() {
@@ -108,11 +106,11 @@ int main() {
         0,0,1
     };
 
-    engine.add(std::span<const float>(data));
+    engine.add(data);
 
     std::vector<float> query = {0.1f, 0.9f, 0.0f};
 
-    auto hits = engine.search(std::span<const float>(query), 1);
+    auto hits = engine.search(query, 1);
 
     std::cout << "ID: " << hits[0].id
               << " Score: " << hits[0].score << std::endl;
@@ -126,31 +124,42 @@ spheni::IndexSpec spec(
     128,
     spheni::Metric::L2,
     spheni::IndexKind::IVF,
-    false,
-    /* nlist = */ 256
+    /* nlist = */ 256,
+    false
 );
 
 spheni::Engine engine(spec);
 
-// add vectors (training triggers automatically once n >= nlist)
+// add vectors (training is explicit)
 engine.add(vectors);
+engine.train();
 
-spheni::SearchParams params;
-params.k = 10;
-params.nprobe = 16;
+spheni::SearchParams params(10, 16);
 
 auto hits = engine.search(query, params);
 ```
 
 ### IVF behavior
 
-1. Training happens automatically once `added_vectors >= nlist`
-2. Before training, searches fall back to flat scan
+1. Training happens only when `engine.train()` is called.
+2. Before training, IVF search throws.
 3. After training:
 
   1. Query -> nearest centroids
   2. Scan `nprobe` inverted lists
   3. Rank using Top-K heap
+  4. New vectors are assigned to existing centroids
+
+## Persistence
+
+```cpp
+spheni::Engine engine(spec);
+engine.add(vectors);
+engine.save("index.bin");
+
+auto loaded = spheni::Engine::load("index.bin");
+auto hits = loaded.search(query, 10);
+```
 
 ## Benchmarks
 
@@ -214,7 +223,7 @@ Longer term:
 
 - [ ] SIMD kernels
 - [x] Multithreading (just query search)
-- [ ] Persistence
+- [x] Persistence
 - [ ] Quantized storage (INT8)
 - [ ] Additional ANN structures
 
