@@ -19,10 +19,11 @@
 3. [Status](#status)
 4. [Installation](#installation)
 5. [Examples](#minimal-example)
-6. [Benchmarks](#benchmarks)
-7. [Design Notes](#design-notes)
-8. [Roadmap](#roadmap)
-9. [References](#references)
+6. [Python Bindings](#python-bindings)
+7. [Benchmarks](#benchmarks)
+8. [Design Notes](#design-notes)
+9. [Roadmap](#roadmap)
+10. [References](#references)
 
 ## Overview
 
@@ -73,7 +74,7 @@ These are deliberate omissions in the current early-stage release.
 
 ## Installation
 
-Build the static library:
+Build the static library (C++):
 
 ```bash
 bash build_spheni.sh
@@ -86,6 +87,16 @@ build/libspheni.a
 ```
 
 Then include headers from `spheni/` and link against `libspheni.a`.
+If you use OpenMP, link with `-fopenmp`.
+
+Build the Python module:
+
+```bash
+cmake -S . -B build -DSPHENI_BUILD_PYTHON=ON -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j
+```
+
+The module is built as `build/spheni.cpython-<pyver>-<arch>.so`. Use `PYTHONPATH=build` to import it without installing.
 
 
 ## Minimal Example
@@ -115,6 +126,42 @@ int main() {
     std::cout << "ID: " << hits[0].id
               << " Score: " << hits[0].score << std::endl;
 }
+```
+
+## Python Bindings
+
+Bindings are implemented with `pybind11` in `src/python/bindings.cpp` and expose:
+
+* `IndexSpec`
+* `Engine`
+* `SearchParams`
+* `SearchHit`
+
+### Minimal Example
+
+```python
+import numpy as np
+import spheni
+
+spec = spheni.IndexSpec(3, spheni.Metric.L2, spheni.IndexKind.Flat, False)
+eng = spheni.Engine(spec)
+
+vectors = np.array([[1.0, 0.0, 0.0],
+                    [0.0, 1.0, 0.0],
+                    [0.0, 0.0, 1.0]], dtype=np.float32)
+eng.add(vectors)
+
+query = np.array([0.1, 0.9, 0.0], dtype=np.float32)
+hits = eng.search(query, 2)
+
+for h in hits:
+    print(h.id, h.score)
+```
+
+Run it:
+
+```bash
+PYTHONPATH=build python3 filename.py
 ```
 
 ## IVF Usage
