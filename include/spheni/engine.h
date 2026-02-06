@@ -18,6 +18,8 @@ public:
     std::vector<SearchHit> search(std::span<const float> query, int k, int nprobe) const;
     std::vector<std::vector<SearchHit>> search_batch(std::span<const float> queries, int k) const;
 
+    void train();
+
     long long size() const;
     int dim() const;
 

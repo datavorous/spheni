@@ -11,6 +11,7 @@ namespace spheni {
         IVFIndex(const IndexSpec& spec);
         void add(std::span<const long long> ids, std::span<const float> vectors) override;
         std::vector<SearchHit> search(std::span<const float> query, const SearchParams& params) const override;
+        void train();
 
         long long size() const override { return total_vectors_; }
         int dim() const override { return spec_.dim; }
@@ -34,7 +35,6 @@ namespace spheni {
         std::vector<float> untrained_vectors_;
         std::vector<long long> untrained_ids_;
 
-        void train();
         int find_nearest_centroid(const float* vector) const;
         float compute_score(const float* query, const float* vector) const;
     };

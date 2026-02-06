@@ -59,6 +59,14 @@ std::vector<std::vector<SearchHit>> Engine::search_batch(std::span<const float> 
     return results;
 }
 
+void Engine::train() {
+    IVFIndex* ivf = dynamic_cast<IVFIndex*>(index_.get());
+    if (!ivf) {
+        throw std::runtime_error("Engine::train: only IVF index supports training.");
+    }
+    ivf->train();
+}
+
 long long Engine::size() const { return index_->size(); }
 int Engine::dim() const { return index_->dim(); }
 

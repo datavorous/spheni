@@ -17,14 +17,19 @@ IVFIndex::IVFIndex(const IndexSpec& spec): spec_(spec), total_vectors_(0), is_tr
     cluster_ids_.resize(spec.nlist);
 }
 
-// TODO: finish this tomorrow
 void IVFIndex::train() {
-    if (is_trained_ || untrained_vectors_.empty()) {
-        return;
+    // training is explicit and allowed only once per instance.
+    if (is_trained_) {
+        throw std::runtime_error("IVFIndex::train: already trained.");
+    }
+    if (untrained_vectors_.empty()) {
+        throw std::runtime_error("IVFIndex::train: no vectors to train on.");
     }
 
     long long n = untrained_vectors_.size() / spec_.dim;
-    if (n<spec_.nlist) { return; }
+    if (n < spec_.nlist) {
+        throw std::runtime_error("IVFIndex::train: not enough vectors to train.");
+    }
 
 
     clustering::KMeans kmeans(spec_.nlist, spec_.dim);
@@ -65,7 +70,6 @@ void IVFIndex::add(std::span<const long long> ids, std::span<const float> vector
         untrained_vectors_.insert(untrained_vectors_.end(), vectors.begin(), vectors.end());
         untrained_ids_.insert(untrained_ids_.end(), ids.begin(), ids.end());
         total_vectors_ += nonneg;
-        train();
         return;
     }
 
@@ -128,23 +132,8 @@ float IVFIndex::compute_score(const float* query, const float* db_vec) const {
 
 std::vector<SearchHit> IVFIndex::search(std::span<const float> query, const SearchParams& params) const {
     if (!is_trained_) {
-
-        TopK topk(params.k);
-        long long n = untrained_vectors_.size() / spec_.dim;
-
-        std::vector<float> query_copy(query.begin(), query.end());
-        if (spec_.normalize && spec_.metric == Metric::Cosine) {
-            kernels::normalize(query_copy.data(), spec_.dim);
-        }
-        for(long long i = 0; i < n; i++) {
-            if (untrained_ids_[i] < 0) {
-                continue;
-            }
-            const float* vec = untrained_vectors_.data() + i * spec_.dim;
-            float score = compute_score(query_copy.data(), vec);
-            topk.push(untrained_ids_[i], score);
-        }
-        return topk.sorted_results();
+        // there is no implicit training or fallback. The caller must explicitly train().
+        throw std::runtime_error("IVFIndex::search: index not trained. Call Engine::train().");
     }
 
 
