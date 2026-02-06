@@ -1,8 +1,10 @@
 #include "core/flat_index.h"
+#include "core/serialize.h"
 #include "utils/kernels.h"
 #include "utils/topk.h"
 #include <algorithm>
 #include <span>
+#include <stdexcept>
 #include <vector>
 
 namespace spheni {
@@ -62,6 +64,36 @@ std::vector<SearchHit> FlatIndex::search(
     }
     
     return topk.sorted_results();
+}
+
+void FlatIndex::save_state(std::ostream& out) const {
+    if (spec_.dim <= 0) {
+        throw std::runtime_error("FlatIndex::save_state: invalid dimension.");
+    }
+    if (vectors_.size() % static_cast<std::size_t>(spec_.dim) != 0) {
+        throw std::runtime_error("FlatIndex::save_state: vector size mismatch.");
+    }
+    if (vectors_.size() / static_cast<std::size_t>(spec_.dim) != ids_.size()) {
+        throw std::runtime_error("FlatIndex::save_state: ids size mismatch.");
+    }
+
+    io::write_vector(out, vectors_);
+    io::write_vector(out, ids_);
+}
+
+void FlatIndex::load_state(std::istream& in) {
+    vectors_ = io::read_vector<float>(in);
+    ids_ = io::read_vector<long long>(in);
+
+    if (spec_.dim <= 0) {
+        throw std::runtime_error("FlatIndex::load_state: invalid dimension.");
+    }
+    if (vectors_.size() % static_cast<std::size_t>(spec_.dim) != 0) {
+        throw std::runtime_error("FlatIndex::load_state: vector size mismatch.");
+    }
+    if (vectors_.size() / static_cast<std::size_t>(spec_.dim) != ids_.size()) {
+        throw std::runtime_error("FlatIndex::load_state: ids size mismatch.");
+    }
 }
 
 }

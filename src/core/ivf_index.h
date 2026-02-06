@@ -1,6 +1,7 @@
 #pragma once
 
 #include "spheni/spheni.h"
+#include <iosfwd>
 #include <vector>
 #include <span>
 
@@ -13,6 +14,10 @@ namespace spheni {
 
         long long size() const override { return total_vectors_; }
         int dim() const override { return spec_.dim; }
+
+        const IndexSpec& spec() const { return spec_; }
+        void save_state(std::ostream& out) const;
+        void load_state(std::istream& in);
 
     private:
         IndexSpec spec_;

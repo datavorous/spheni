@@ -37,3 +37,4 @@ build/
 demo/
 PROGRESS.md
 BUILD_COMMANDS.md
+*.bin

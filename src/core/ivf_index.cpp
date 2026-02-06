@@ -1,9 +1,11 @@
 #include "core/ivf_index.h"
+#include "core/serialize.h"
 #include "utils/kmeans.h"
 #include "utils/kernels.h"
 #include "utils/topk.h"
 #include <algorithm>
 #include <limits>
+#include <stdexcept>
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -217,5 +219,122 @@ std::vector<SearchHit> IVFIndex::search(std::span<const float> query, const Sear
     return topk.sorted_results();
 }
 
+void IVFIndex::save_state(std::ostream& out) const {
+    if (spec_.dim <= 0) {
+        throw std::runtime_error("IVFIndex::save_state: invalid dimension.");
+    }
+    if (static_cast<int>(cluster_vectors_.size()) != spec_.nlist ||
+        static_cast<int>(cluster_ids_.size()) != spec_.nlist) {
+        throw std::runtime_error("IVFIndex::save_state: cluster list size mismatch.");
+    }
+    if (is_trained_) {
+        std::size_t expected = static_cast<std::size_t>(spec_.nlist) * static_cast<std::size_t>(spec_.dim);
+        if (centroids_.size() != expected) {
+            throw std::runtime_error("IVFIndex::save_state: centroid size mismatch.");
+        }
+    } else {
+        if (!centroids_.empty()) {
+            throw std::runtime_error("IVFIndex::save_state: centroids present before training.");
+        }
+        for (int c = 0; c < spec_.nlist; ++c) {
+            if (!cluster_vectors_[c].empty() || !cluster_ids_[c].empty()) {
+                throw std::runtime_error("IVFIndex::save_state: clusters present before training.");
+            }
+        }
+    }
+
+    io::write_bool(out, is_trained_);
+    io::write_pod(out, total_vectors_);
+    io::write_vector(out, centroids_);
+
+    io::write_pod(out, static_cast<std::uint64_t>(cluster_vectors_.size()));
+    for (int c = 0; c < spec_.nlist; ++c) {
+        const auto& vecs = cluster_vectors_[c];
+        const auto& ids = cluster_ids_[c];
+        if (vecs.size() % static_cast<std::size_t>(spec_.dim) != 0) {
+            throw std::runtime_error("IVFIndex::save_state: cluster vector size mismatch.");
+        }
+        if (vecs.size() / static_cast<std::size_t>(spec_.dim) != ids.size()) {
+            throw std::runtime_error("IVFIndex::save_state: cluster ids size mismatch.");
+        }
+        io::write_vector(out, vecs);
+        io::write_vector(out, ids);
+    }
+
+    io::write_vector(out, untrained_vectors_);
+    io::write_vector(out, untrained_ids_);
+}
+
+void IVFIndex::load_state(std::istream& in) {
+    if (spec_.dim <= 0) {
+        throw std::runtime_error("IVFIndex::load_state: invalid dimension.");
+    }
+
+    is_trained_ = io::read_bool(in);
+    total_vectors_ = io::read_pod<long long>(in);
+    centroids_ = io::read_vector<float>(in);
+
+    std::uint64_t cluster_count = io::read_pod<std::uint64_t>(in);
+    if (cluster_count != static_cast<std::uint64_t>(spec_.nlist)) {
+        throw std::runtime_error("IVFIndex::load_state: cluster count mismatch.");
+    }
+    cluster_vectors_.assign(spec_.nlist, {});
+    cluster_ids_.assign(spec_.nlist, {});
+
+    for (int c = 0; c < spec_.nlist; ++c) {
+        cluster_vectors_[c] = io::read_vector<float>(in);
+        cluster_ids_[c] = io::read_vector<long long>(in);
+
+        if (cluster_vectors_[c].size() % static_cast<std::size_t>(spec_.dim) != 0) {
+            throw std::runtime_error("IVFIndex::load_state: cluster vector size mismatch.");
+        }
+        if (cluster_vectors_[c].size() / static_cast<std::size_t>(spec_.dim) != cluster_ids_[c].size()) {
+            throw std::runtime_error("IVFIndex::load_state: cluster ids size mismatch.");
+        }
+    }
+
+    untrained_vectors_ = io::read_vector<float>(in);
+    untrained_ids_ = io::read_vector<long long>(in);
+
+    if (untrained_vectors_.size() % static_cast<std::size_t>(spec_.dim) != 0) {
+        throw std::runtime_error("IVFIndex::load_state: untrained vector size mismatch.");
+    }
+    if (untrained_vectors_.size() / static_cast<std::size_t>(spec_.dim) != untrained_ids_.size()) {
+        throw std::runtime_error("IVFIndex::load_state: untrained ids size mismatch.");
+    }
+
+    if (is_trained_) {
+        std::size_t expected = static_cast<std::size_t>(spec_.nlist) * static_cast<std::size_t>(spec_.dim);
+        if (centroids_.size() != expected) {
+            throw std::runtime_error("IVFIndex::load_state: centroid size mismatch.");
+        }
+    } else {
+        if (!centroids_.empty()) {
+            throw std::runtime_error("IVFIndex::load_state: centroids present before training.");
+        }
+        for (int c = 0; c < spec_.nlist; ++c) {
+            if (!cluster_vectors_[c].empty() || !cluster_ids_[c].empty()) {
+                throw std::runtime_error("IVFIndex::load_state: clusters present before training.");
+            }
+        }
+    }
+
+    long long nonneg = 0;
+    for (long long id : untrained_ids_) {
+        if (id >= 0) {
+            ++nonneg;
+        }
+    }
+    for (int c = 0; c < spec_.nlist; ++c) {
+        for (long long id : cluster_ids_[c]) {
+            if (id >= 0) {
+                ++nonneg;
+            }
+        }
+    }
+    if (nonneg != total_vectors_) {
+        throw std::runtime_error("IVFIndex::load_state: total vector count mismatch.");
+    }
+}
 
 }

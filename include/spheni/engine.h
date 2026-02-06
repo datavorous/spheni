@@ -3,6 +3,7 @@
 #include "spheni/spheni.h"
 #include <memory>
 #include <span>
+#include <string>
 #include <vector>
 
 namespace spheni {
@@ -19,6 +20,9 @@ public:
 
     long long size() const;
     int dim() const;
+
+    void save(const std::string& path) const;
+    static Engine load(const std::string& path);
 
 private:
     std::unique_ptr<Index> index_;

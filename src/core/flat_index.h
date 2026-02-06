@@ -1,6 +1,7 @@
 #pragma once
 
 #include "spheni/spheni.h"
+#include <iosfwd>
 #include <vector>
 #include <span>
 
@@ -13,6 +14,10 @@ public:
     void add(std::span<const long long> ids, std::span<const float> vectors) override;
     
     std::vector<SearchHit> search(std::span<const float> query, const SearchParams& params) const override;
+
+    const IndexSpec& spec() const { return spec_; }
+    void save_state(std::ostream& out) const;
+    void load_state(std::istream& in);
     
     long long size() const override { return ids_.size(); }
     int dim() const override { return spec_.dim; }
