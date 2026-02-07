@@ -59,6 +59,19 @@ std::vector<std::vector<SearchHit>> Engine::search_batch(std::span<const float> 
     return results;
 }
 
+std::vector<std::vector<SearchHit>> Engine::search_batch(std::span<const float> queries, int k, int nprobe) const {
+    int d = index_->dim();
+    long long n = queries.size() / d;
+    std::vector<std::vector<SearchHit>> results;
+
+    for (long long i = 0; i < n; ++i) {
+        std::span<const float> query(queries.data() + i * d, d);
+        results.push_back(search(query, k, nprobe));
+    }
+
+    return results;
+}
+
 void Engine::train() {
     IVFIndex* ivf = dynamic_cast<IVFIndex*>(index_.get());
     if (!ivf) {

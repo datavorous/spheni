@@ -45,7 +45,7 @@ struct IndexSpec {
 
 struct SearchParams {
     int k;
-    SearchParams(int k_) : k(k_) {}
+    SearchParams(int k_) : k(k_), nprobe(1) {}
 
     int nprobe;
     SearchParams(int k_, int np) : k(k_), nprobe(np) {}

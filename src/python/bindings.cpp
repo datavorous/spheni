@@ -145,6 +145,18 @@ PYBIND11_MODULE(spheni, m) {
                  return self.search_batch(as_vector_span(queries), k);
              },
              py::arg("queries"), py::arg("k"))
+        .def("search_batch",
+             [](const spheni::Engine& self, const py::array_t<float, py::array::c_style>& queries, int k, int nprobe) {
+                 ensure_float32(queries);
+                 if (queries.ndim() != 2) {
+                     throw py::value_error("queries must be a 2D array");
+                 }
+                 if (queries.shape(1) != self.dim()) {
+                     throw py::value_error("queries second dimension must match index dim");
+                 }
+                 return self.search_batch(as_vector_span(queries), k, nprobe);
+             },
+             py::arg("queries"), py::arg("k"), py::arg("nprobe"))
         .def("save", &spheni::Engine::save, py::arg("path"))
         .def_static("load", &spheni::Engine::load, py::arg("path"));
 }
