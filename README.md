@@ -16,12 +16,13 @@
 
 1. [Overview](#overview)
 2. [Features](#features)
-3. [Getting Started](#getting-started)
-4. [Examples](#examples)
-5. [Benchmarks](#benchmarks)
-6. [Status](#status)
-7. [Roadmap](#roadmap)
-8. [License](#license)
+3. [Applications](#applications)
+4. [Getting Started](#getting-started)
+5. [Examples](#examples)
+6. [Benchmarks](#benchmarks)
+7. [Status](#status)
+8. [Roadmap](#roadmap)
+9. [License](#license)
 
 ## Overview
 
@@ -35,6 +36,21 @@ Spheni is a C++ library with Python bindings to search for points in space that 
 4. Ops: add, search, search_batch, train, save, load
 
 Check out the [API Reference](docs/wiki/python_api.md) for full details.
+
+## Applications
+
+### Semantic Image Search
+
+Spheni manages the low-level indexing and storage of CLIP-generated embeddings to enable vector similarity calculations. It compares the mathematical representation of a text query against the indexed image vectors to find the best semantic matches.
+
+![demo gif](media/image_search.gif)
+
+### Semantic `grep`
+
+It retrieves relevant lines based on meaning rather than exact keywords.
+It embeds text once and uses Spheni for fast, offline vector search.
+
+![sphgrep](media/sphgrep.png)
 
 ## Getting Started
 
