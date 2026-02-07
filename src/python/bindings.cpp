@@ -42,15 +42,24 @@ PYBIND11_MODULE(spheni, m) {
         .value("Flat", spheni::IndexKind::Flat)
         .value("IVF", spheni::IndexKind::IVF);
 
+    py::enum_<spheni::StorageType>(m, "StorageType")
+        .value("F32", spheni::StorageType::F32)
+        .value("INT8", spheni::StorageType::INT8);
+
     py::class_<spheni::IndexSpec>(m, "IndexSpec")
         .def(py::init<int, spheni::Metric, spheni::IndexKind, bool>(),
              py::arg("dim"), py::arg("metric"), py::arg("kind"), py::arg("normalize") = true)
+        .def(py::init<int, spheni::Metric, spheni::IndexKind, spheni::StorageType, bool>(),
+             py::arg("dim"), py::arg("metric"), py::arg("kind"), py::arg("storage"), py::arg("normalize") = true)
         .def(py::init<int, spheni::Metric, spheni::IndexKind, int, bool>(),
              py::arg("dim"), py::arg("metric"), py::arg("kind"), py::arg("nlist"), py::arg("normalize") = true)
+        .def(py::init<int, spheni::Metric, spheni::IndexKind, int, spheni::StorageType, bool>(),
+             py::arg("dim"), py::arg("metric"), py::arg("kind"), py::arg("nlist"), py::arg("storage"), py::arg("normalize") = true)
         .def_readwrite("dim", &spheni::IndexSpec::dim)
         .def_readwrite("metric", &spheni::IndexSpec::metric)
         .def_readwrite("normalize", &spheni::IndexSpec::normalize)
         .def_readwrite("kind", &spheni::IndexSpec::kind)
+        .def_readwrite("storage", &spheni::IndexSpec::storage)
         .def_readwrite("nlist", &spheni::IndexSpec::nlist);
 
     py::class_<spheni::SearchParams>(m, "SearchParams")

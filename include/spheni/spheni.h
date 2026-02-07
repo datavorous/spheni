@@ -16,17 +16,31 @@ enum class IndexKind {
     IVF
 };
 
+enum class StorageType {
+    F32,
+    INT8
+};
+
 struct IndexSpec {
     int dim;
     
     Metric metric;
     bool normalize;
     IndexKind kind;
+    StorageType storage;
 
-    IndexSpec(int d, Metric m, IndexKind k, bool norm = true): dim(d), metric(m), normalize(norm), kind(k), nlist(0) {}
+    IndexSpec(int d, Metric m, IndexKind k, bool norm = true)
+        : dim(d), metric(m), normalize(norm), kind(k), storage(StorageType::F32), nlist(0) {}
+
+    IndexSpec(int d, Metric m, IndexKind k, StorageType s, bool norm = true)
+        : dim(d), metric(m), normalize(norm), kind(k), storage(s), nlist(0) {}
 
     int nlist;
-    IndexSpec(int d, Metric m, IndexKind k, int nl, bool norm = true): dim(d), metric(m), normalize(norm), kind(k), nlist(nl) {}
+    IndexSpec(int d, Metric m, IndexKind k, int nl, bool norm = true)
+        : dim(d), metric(m), normalize(norm), kind(k), storage(StorageType::F32), nlist(nl) {}
+
+    IndexSpec(int d, Metric m, IndexKind k, int nl, StorageType s, bool norm = true)
+        : dim(d), metric(m), normalize(norm), kind(k), storage(s), nlist(nl) {}
 };
 
 struct SearchParams {

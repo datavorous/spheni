@@ -2,6 +2,7 @@
 #include "core/serialize.h"
 #include "utils/kmeans.h"
 #include "utils/kernels.h"
+#include "utils/quantization.h"
 #include "utils/topk.h"
 #include <algorithm>
 #include <limits>
@@ -14,6 +15,8 @@ namespace spheni {
 
 IVFIndex::IVFIndex(const IndexSpec& spec): spec_(spec), total_vectors_(0), is_trained_(false) {
     cluster_vectors_.resize(spec.nlist);
+    cluster_vectors_i8_.resize(spec.nlist);
+    cluster_scales_.resize(spec.nlist);
     cluster_ids_.resize(spec.nlist);
 }
 
@@ -43,10 +46,16 @@ void IVFIndex::train() {
         if (untrained_ids_[i] < 0) {
             continue;
         }
-        cluster_vectors_[cluster].insert(
-            cluster_vectors_[cluster].end(),
-            vec,
-            vec + spec_.dim);
+        if (spec_.storage == StorageType::F32) {
+            cluster_vectors_[cluster].insert(
+                cluster_vectors_[cluster].end(),
+                vec,
+                vec + spec_.dim);
+        } else if (spec_.storage == StorageType::INT8) {
+            quantization::quantize_vector(vec, spec_.dim, cluster_vectors_i8_[cluster], cluster_scales_[cluster]);
+        } else {
+            throw std::runtime_error("IVFIndex::train: unsupported storage type.");
+        }
 
         cluster_ids_[cluster].push_back(untrained_ids_[i]);
     }
@@ -73,27 +82,29 @@ void IVFIndex::add(std::span<const long long> ids, std::span<const float> vector
         return;
     }
 
-    std::vector<float> vecs_copy(vectors.begin(), vectors.end());
-
-    if (spec_.normalize && spec_.metric == Metric::Cosine) {
-        for(long long i = 0; i < n; i++) {
-            float* vec = vecs_copy.data() + i * spec_.dim;
-            kernels::normalize(vec, spec_.dim);
-        }
-    }
-
-
     for(long long i = 0; i < n; i++) {
         if (ids[i] < 0) {
             continue;
         }
-        const float* vec = vecs_copy.data() + i * spec_.dim;
+        const float* vec = vectors.data() + i * spec_.dim;
+        std::vector<float> vec_copy;
+        if (spec_.normalize && spec_.metric == Metric::Cosine) {
+            vec_copy.assign(vec, vec + spec_.dim);
+            kernels::normalize(vec_copy.data(), spec_.dim);
+            vec = vec_copy.data();
+        }
         int cluster = find_nearest_centroid(vec);
 
-        cluster_vectors_[cluster].insert(
-            cluster_vectors_[cluster].end(),
-            vec,
-            vec + spec_.dim);
+        if (spec_.storage == StorageType::F32) {
+            cluster_vectors_[cluster].insert(
+                cluster_vectors_[cluster].end(),
+                vec,
+                vec + spec_.dim);
+        } else if (spec_.storage == StorageType::INT8) {
+            quantization::quantize_vector(vec, spec_.dim, cluster_vectors_i8_[cluster], cluster_scales_[cluster]);
+        } else {
+            throw std::runtime_error("IVFIndex::add: unsupported storage type.");
+        }
 
         cluster_ids_[cluster].push_back(ids[i]);
     }
@@ -129,6 +140,29 @@ float IVFIndex::compute_score(const float* query, const float* db_vec) const {
     }
 }
 
+static float compute_score_int8(const float* query, const std::int8_t* db_vec, float scale, int dim, Metric metric) {
+    switch (metric) {
+        case Metric::Cosine: {
+            float sum = 0.0f;
+            for (int i = 0; i < dim; ++i) {
+                float v = scale * static_cast<float>(db_vec[i]);
+                sum += query[i] * v;
+            }
+            return sum;
+        }
+        case Metric::L2: {
+            float sum = 0.0f;
+            for (int i = 0; i < dim; ++i) {
+                float v = scale * static_cast<float>(db_vec[i]);
+                float diff = v - query[i];
+                sum += diff * diff;
+            }
+            return -sum;
+        }
+        default:
+            return 0.0f;
+    }
+}
 
 std::vector<SearchHit> IVFIndex::search(std::span<const float> query, const SearchParams& params) const {
     if (!is_trained_) {
@@ -179,8 +213,17 @@ std::vector<SearchHit> IVFIndex::search(std::span<const float> query, const Sear
             long long cluster_size = cluster_ids_[cluster].size();
 
             for(long long i = 0; i < cluster_size; i++) {
-                const float* vec = cluster_vectors_[cluster].data() + i * spec_.dim;
-                float score = compute_score(query_ptr, vec);
+                float score = 0.0f;
+                if (spec_.storage == StorageType::F32) {
+                    const float* vec = cluster_vectors_[cluster].data() + i * spec_.dim;
+                    score = compute_score(query_ptr, vec);
+                } else if (spec_.storage == StorageType::INT8) {
+                    const std::int8_t* vec = cluster_vectors_i8_[cluster].data() + i * spec_.dim;
+                    float scale = cluster_scales_[cluster][static_cast<std::size_t>(i)];
+                    score = compute_score_int8(query_ptr, vec, scale, spec_.dim, spec_.metric);
+                } else {
+                    throw std::runtime_error("IVFIndex::search: unsupported storage type.");
+                }
                 local_topk.push(cluster_ids_[cluster][i], score);
             }
         }
@@ -198,8 +241,17 @@ std::vector<SearchHit> IVFIndex::search(std::span<const float> query, const Sear
         long long cluster_size = cluster_ids_[cluster].size();
 
         for(long long i = 0; i < cluster_size; i++) {
-            const float* vec = cluster_vectors_[cluster].data() + i * spec_.dim;
-            float score = compute_score(query_ptr, vec);
+            float score = 0.0f;
+            if (spec_.storage == StorageType::F32) {
+                const float* vec = cluster_vectors_[cluster].data() + i * spec_.dim;
+                score = compute_score(query_ptr, vec);
+            } else if (spec_.storage == StorageType::INT8) {
+                const std::int8_t* vec = cluster_vectors_i8_[cluster].data() + i * spec_.dim;
+                float scale = cluster_scales_[cluster][static_cast<std::size_t>(i)];
+                score = compute_score_int8(query_ptr, vec, scale, spec_.dim, spec_.metric);
+            } else {
+                throw std::runtime_error("IVFIndex::search: unsupported storage type.");
+            }
             topk.push(cluster_ids_[cluster][i], score);
         }
     }
@@ -213,6 +265,8 @@ void IVFIndex::save_state(std::ostream& out) const {
         throw std::runtime_error("IVFIndex::save_state: invalid dimension.");
     }
     if (static_cast<int>(cluster_vectors_.size()) != spec_.nlist ||
+        static_cast<int>(cluster_vectors_i8_.size()) != spec_.nlist ||
+        static_cast<int>(cluster_scales_.size()) != spec_.nlist ||
         static_cast<int>(cluster_ids_.size()) != spec_.nlist) {
         throw std::runtime_error("IVFIndex::save_state: cluster list size mismatch.");
     }
@@ -226,7 +280,8 @@ void IVFIndex::save_state(std::ostream& out) const {
             throw std::runtime_error("IVFIndex::save_state: centroids present before training.");
         }
         for (int c = 0; c < spec_.nlist; ++c) {
-            if (!cluster_vectors_[c].empty() || !cluster_ids_[c].empty()) {
+            if (!cluster_vectors_[c].empty() || !cluster_vectors_i8_[c].empty() ||
+                !cluster_scales_[c].empty() || !cluster_ids_[c].empty()) {
                 throw std::runtime_error("IVFIndex::save_state: clusters present before training.");
             }
         }
@@ -238,15 +293,33 @@ void IVFIndex::save_state(std::ostream& out) const {
 
     io::write_pod(out, static_cast<std::uint64_t>(cluster_vectors_.size()));
     for (int c = 0; c < spec_.nlist; ++c) {
-        const auto& vecs = cluster_vectors_[c];
         const auto& ids = cluster_ids_[c];
-        if (vecs.size() % static_cast<std::size_t>(spec_.dim) != 0) {
-            throw std::runtime_error("IVFIndex::save_state: cluster vector size mismatch.");
+        if (spec_.storage == StorageType::F32) {
+            const auto& vecs = cluster_vectors_[c];
+            if (vecs.size() % static_cast<std::size_t>(spec_.dim) != 0) {
+                throw std::runtime_error("IVFIndex::save_state: cluster vector size mismatch.");
+            }
+            if (vecs.size() / static_cast<std::size_t>(spec_.dim) != ids.size()) {
+                throw std::runtime_error("IVFIndex::save_state: cluster ids size mismatch.");
+            }
+            io::write_vector(out, vecs);
+        } else if (spec_.storage == StorageType::INT8) {
+            const auto& vecs = cluster_vectors_i8_[c];
+            const auto& scales = cluster_scales_[c];
+            if (vecs.size() % static_cast<std::size_t>(spec_.dim) != 0) {
+                throw std::runtime_error("IVFIndex::save_state: cluster vector size mismatch.");
+            }
+            if (vecs.size() / static_cast<std::size_t>(spec_.dim) != ids.size()) {
+                throw std::runtime_error("IVFIndex::save_state: cluster ids size mismatch.");
+            }
+            if (scales.size() != ids.size()) {
+                throw std::runtime_error("IVFIndex::save_state: cluster scales size mismatch.");
+            }
+            io::write_vector(out, vecs);
+            io::write_vector(out, scales);
+        } else {
+            throw std::runtime_error("IVFIndex::save_state: unsupported storage type.");
         }
-        if (vecs.size() / static_cast<std::size_t>(spec_.dim) != ids.size()) {
-            throw std::runtime_error("IVFIndex::save_state: cluster ids size mismatch.");
-        }
-        io::write_vector(out, vecs);
         io::write_vector(out, ids);
     }
 
@@ -268,17 +341,38 @@ void IVFIndex::load_state(std::istream& in) {
         throw std::runtime_error("IVFIndex::load_state: cluster count mismatch.");
     }
     cluster_vectors_.assign(spec_.nlist, {});
+    cluster_vectors_i8_.assign(spec_.nlist, {});
+    cluster_scales_.assign(spec_.nlist, {});
     cluster_ids_.assign(spec_.nlist, {});
 
     for (int c = 0; c < spec_.nlist; ++c) {
-        cluster_vectors_[c] = io::read_vector<float>(in);
+        if (spec_.storage == StorageType::F32) {
+            cluster_vectors_[c] = io::read_vector<float>(in);
+        } else if (spec_.storage == StorageType::INT8) {
+            cluster_vectors_i8_[c] = io::read_vector<std::int8_t>(in);
+            cluster_scales_[c] = io::read_vector<float>(in);
+        } else {
+            throw std::runtime_error("IVFIndex::load_state: unsupported storage type.");
+        }
         cluster_ids_[c] = io::read_vector<long long>(in);
 
-        if (cluster_vectors_[c].size() % static_cast<std::size_t>(spec_.dim) != 0) {
-            throw std::runtime_error("IVFIndex::load_state: cluster vector size mismatch.");
-        }
-        if (cluster_vectors_[c].size() / static_cast<std::size_t>(spec_.dim) != cluster_ids_[c].size()) {
-            throw std::runtime_error("IVFIndex::load_state: cluster ids size mismatch.");
+        if (spec_.storage == StorageType::F32) {
+            if (cluster_vectors_[c].size() % static_cast<std::size_t>(spec_.dim) != 0) {
+                throw std::runtime_error("IVFIndex::load_state: cluster vector size mismatch.");
+            }
+            if (cluster_vectors_[c].size() / static_cast<std::size_t>(spec_.dim) != cluster_ids_[c].size()) {
+                throw std::runtime_error("IVFIndex::load_state: cluster ids size mismatch.");
+            }
+        } else if (spec_.storage == StorageType::INT8) {
+            if (cluster_vectors_i8_[c].size() % static_cast<std::size_t>(spec_.dim) != 0) {
+                throw std::runtime_error("IVFIndex::load_state: cluster vector size mismatch.");
+            }
+            if (cluster_vectors_i8_[c].size() / static_cast<std::size_t>(spec_.dim) != cluster_ids_[c].size()) {
+                throw std::runtime_error("IVFIndex::load_state: cluster ids size mismatch.");
+            }
+            if (cluster_scales_[c].size() != cluster_ids_[c].size()) {
+                throw std::runtime_error("IVFIndex::load_state: cluster scales size mismatch.");
+            }
         }
     }
 
@@ -302,7 +396,8 @@ void IVFIndex::load_state(std::istream& in) {
             throw std::runtime_error("IVFIndex::load_state: centroids present before training.");
         }
         for (int c = 0; c < spec_.nlist; ++c) {
-            if (!cluster_vectors_[c].empty() || !cluster_ids_[c].empty()) {
+            if (!cluster_vectors_[c].empty() || !cluster_vectors_i8_[c].empty() ||
+                !cluster_scales_[c].empty() || !cluster_ids_[c].empty()) {
                 throw std::runtime_error("IVFIndex::load_state: clusters present before training.");
             }
         }

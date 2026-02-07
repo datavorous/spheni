@@ -1,6 +1,7 @@
 #pragma once
 
 #include "spheni/spheni.h"
+#include <cstdint>
 #include <iosfwd>
 #include <vector>
 #include <span>
@@ -25,6 +26,8 @@ namespace spheni {
 
         std::vector<float> centroids_;
         std::vector<std::vector<float>> cluster_vectors_;
+        std::vector<std::vector<std::int8_t>> cluster_vectors_i8_;
+        std::vector<std::vector<float>> cluster_scales_;
         std::vector<std::vector<long long>> cluster_ids_;
 
 

@@ -97,6 +97,7 @@ void Engine::save(const std::string& path) const {
     io::write_pod(out, static_cast<std::int32_t>(spec->dim));
     io::write_pod(out, static_cast<std::int32_t>(spec->metric));
     io::write_pod(out, static_cast<std::int32_t>(spec->kind));
+    io::write_pod(out, static_cast<std::int32_t>(spec->storage));
     io::write_bool(out, spec->normalize);
 
     io::write_pod(out, static_cast<std::int32_t>(spec->nlist));
@@ -122,6 +123,7 @@ Engine Engine::load(const std::string& path) {
     std::int32_t dim = io::read_pod<std::int32_t>(in);
     std::int32_t metric_raw = io::read_pod<std::int32_t>(in);
     std::int32_t kind_raw = io::read_pod<std::int32_t>(in);
+    std::int32_t storage_raw = io::read_pod<std::int32_t>(in);
     bool normalize = io::read_bool(in);
     std::int32_t nlist = io::read_pod<std::int32_t>(in);
     long long next_id = io::read_pod<long long>(in);
@@ -135,6 +137,9 @@ Engine Engine::load(const std::string& path) {
     if (kind_raw < 0 || kind_raw > 1) {
         throw std::runtime_error("Engine::load: invalid index kind.");
     }
+    if (storage_raw < 0 || storage_raw > 1) {
+        throw std::runtime_error("Engine::load: invalid storage type.");
+    }
     if (kind_raw == static_cast<std::int32_t>(IndexKind::IVF) && nlist <= 0) {
         throw std::runtime_error("Engine::load: invalid IVF nlist.");
     }
@@ -143,6 +148,7 @@ Engine Engine::load(const std::string& path) {
                    static_cast<Metric>(metric_raw),
                    static_cast<IndexKind>(kind_raw),
                    nlist,
+                   static_cast<StorageType>(storage_raw),
                    normalize);
 
     Engine engine(spec);

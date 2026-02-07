@@ -1,6 +1,7 @@
 #pragma once
 
 #include "spheni/spheni.h"
+#include <cstdint>
 #include <iosfwd>
 #include <vector>
 #include <span>
@@ -26,8 +27,11 @@ private:
     IndexSpec spec_;
 
     std::vector<float> vectors_;    
+    std::vector<std::int8_t> vectors_i8_;
+    std::vector<float> scales_;
     std::vector<long long> ids_;
     float compute_score(const float* query, const float* db_vec) const;
+    float compute_score_int8(const float* query, const std::int8_t* db_vec, float scale) const;
     
 };
 
