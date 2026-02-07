@@ -10,6 +10,7 @@
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg"></a>
+  <a href="https://discord.gg/XPrAs44vdH"><img src="https://img.shields.io/discord/1463893045731921934?label=Discord&logo=discord" alt="Discord"></a>
 </p>
 
 ## Index
@@ -23,6 +24,7 @@
 7. [Status](#status)
 8. [Roadmap](#roadmap)
 9. [License](#license)
+10. [Disclosure](#disclosure)
 
 ## Overview
 
@@ -35,7 +37,7 @@ Spheni is a C++ library with Python bindings to search for points in space that 
 3. Storage: F32, INT8
 4. Ops: add, search, search_batch, train, save, load
 
-Check out the [API Reference](docs/wiki/python_api.md) for full details.
+Check out the [API Reference](docs/wiki/python_api.md) (Python) for full details.
 
 ## Applications
 
@@ -54,13 +56,16 @@ It embeds text once and uses Spheni for fast, offline vector search.
 
 ## Getting Started
 
+Git clone and navigate into the root directory.
+Have CMake, pybind11 and OpenMP installed.
+
 Build from the repo root:
 
 ```bash
 ./build_spheni.sh --python --install ./dist
 ```
 
-and link with your C++/Python projects.
+and then link with your C++/Python projects.
 
 Check out the [full guide](docs/wiki/building.md).
 
@@ -103,6 +108,10 @@ for hit in results:
 
 ## Benchmarks
 
+IVF achieves ~97% Recall@10 with ~12x higher throughput than brute force and stable tail latency.
+INT8 quantization reduces memory by ~73% with negligible accuracy loss, and OpenMP parallelism adds ~2.4x more throughput.
+
+
 Read the full [benchmark report](docs/benchmarks/benchmarks.md).
 
 ## Status
@@ -142,3 +151,8 @@ Longer term:
 ## License
 
 Apache 2.0
+
+## Disclosure
+
+I couldn't find any solid resources showing how to structure vector search lib end-to-end, so I relied on a few community discussions (viz. this [reddit thread](https://www.reddit.com/r/Database/comments/1nyigk3/how_hard_would_it_be_to_create_a_vector_db_from/)) and read some ANN literature from the 20th century.  
+I also used Claude in a "whiteboard" mode to reason about design decisions. Serialization, bindings, and exception-handling code were Codex-generated and then manually reviewed.

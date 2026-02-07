@@ -61,13 +61,13 @@ The Inverted File (IVF) index utilizes Voronoi-based spatial partitioning. We ev
 
 #### Visuals: IVF Performance
 
-![Recall/latency trade-off](../media/graphs/ivf_recall_latency_tradeoff.png)
+![Recall/latency trade-off](../../media/graphs/ivf_recall_latency_tradeoff.png)
 *Recall vs latency for IVF configurations (lower is better latency).* 
 
-![QPS vs recall sweep](../media/graphs/qps_vs_recall.png)
+![QPS vs recall sweep](../../media/graphs/qps_vs_recall.png)
 *Throughput (QPS) against recall across nprobe sweep.*
 
-![Search fraction efficiency](../media/graphs/search_fraction_efficiency.png)
+![Search fraction efficiency](../../media/graphs/search_fraction_efficiency.png)
 *Fraction of clusters searched vs achieved recall; highlights efficiency gains as nprobe scales.*
 
 ## 4. Key Findings
@@ -86,7 +86,7 @@ The p99 latencies are remarkably stable across all IVF tests, typically staying 
 
 #### Visuals: Tail Latency
 
-![Tail latency distribution](../media/graphs/latency_distribution.png)
+![Tail latency distribution](../../media/graphs/latency_distribution.png)
 *CDF of per-query latency showing tight p99 spread.*
 
 ## 5. Parallel Batch Query Execution (OpenMP)
@@ -98,3 +98,29 @@ Enabling OpenMP batch query parallelism (OMP=4) on the IVF-256 / nprobe-16 confi
 Parallelism is applied across independent queries, without modifying the underlying index or search logic.
 
 All values are averaged over 5 runs.
+
+## 6. Scalar Quantization (INT8)
+
+**Date:** February 7, 2026
+
+Scalar quantization reduces per-dimension storage from 32-bit floats to 8-bit integers, achieving a ~73% reduction in index size with minimal impact on accuracy. 
+
+### FLAT: F32 vs INT8
+
+| Metric            | FLAT F32 | FLAT INT8  |
+| ----------------- | -------- | ---------- |
+| Recall@10         | 99.00%   | 98.80%     |
+| Mean Latency (ms) | 5.46     | 6.49       |
+| Throughput (QPS)  | 183.3    | 154.1      |
+| Index File Size   | 24.80 MB | 6.68 MB    |
+| Storage Reduction | —        | **73.08%** |
+
+### IVF: F32 vs INT8
+
+| Metric            | IVF F32  | IVF INT8   |
+| ----------------- | -------- | ---------- |
+| Recall@10         | 98.09%   | 97.89%     |
+| Mean Latency (ms) | 0.270    | 0.343      |
+| Throughput (QPS)  | 3,700.7  | 2,912.1    |
+| Index File Size   | 24.85 MB | 6.73 MB    |
+| Storage Reduction | —        | **72.93%** |
