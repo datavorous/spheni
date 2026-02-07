@@ -7,6 +7,8 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+include(GNUInstallDirs)
+
 if(MSVC)
     add_compile_options(/W4)
 else()
@@ -46,4 +48,17 @@ if(SPHENI_BUILD_PYTHON)
     )
     target_link_libraries(spheni_py PRIVATE spheni)
     set_target_properties(spheni_py PROPERTIES OUTPUT_NAME spheni)
+endif()
+
+install(TARGETS spheni
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)
+install(DIRECTORY include/
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
+
+if(SPHENI_BUILD_PYTHON)
+    install(TARGETS spheni_py
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/spheni
+    )
 endif()

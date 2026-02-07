@@ -35,6 +35,8 @@
 .vscode/
 build/
 demo/
-PROGRESS.md
-BUILD_COMMANDS.md
+dist/
 *.bin
+*.spheni
+benchmark.cpp
+data/
