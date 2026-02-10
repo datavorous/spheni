@@ -9,7 +9,7 @@ build-backend = "scikit_build_core.build"
 name = "spheni"
 version = "0.1.0"
 description = "A tiny CPU-first, in-memory vector search library in C++ with Python bindings."
-readme = "README.md"
+readme = "README.pypi.md"
 requires-python = ">=3.9"
 license = { text = "Apache-2.0" }
 authors = [
@@ -25,6 +25,11 @@ classifiers = [
   "Operating System :: POSIX :: Linux",
   "License :: OSI Approved :: Apache Software License",
 ]
+
+[project.urls]
+Homepage = "https://github.com/datavorous/spheni"
+Repository = "https://github.com/datavorous/spheni"
+Issues = "https://github.com/datavorous/spheni/issues"
 
 [tool.scikit-build]
 minimum-version = "build-system.requires"
