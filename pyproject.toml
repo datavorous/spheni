@@ -1,0 +1,36 @@
+[build-system]
+requires = [
+  "scikit-build-core>=0.10",
+  "pybind11>=2.11",
+]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "spheni"
+version = "0.1.0"
+description = "A tiny CPU-first, in-memory vector search library in C++ with Python bindings."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "Apache-2.0" }
+authors = [
+  { name = "datavorous" }
+]
+dependencies = [
+  "numpy>=1.22",
+]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: C++",
+  "Operating System :: POSIX :: Linux",
+  "License :: OSI Approved :: Apache Software License",
+]
+
+[tool.scikit-build]
+minimum-version = "build-system.requires"
+cmake.build-type = "Release"
+wheel.packages = ["python/spheni"]
+
+[tool.scikit-build.cmake.define]
+SPHENI_BUILD_PYTHON = "ON"
+SPHENI_ENABLE_MARCH_NATIVE = "OFF"

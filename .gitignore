@@ -40,3 +40,4 @@ dist/
 *.spheni
 benchmark.cpp
 data/
+.venv/

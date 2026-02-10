@@ -9,6 +9,7 @@ This guide covers compiling Spheni, running examples, and using it from other fo
 3. OpenMP support for your compiler (optional but recommended)
 4. Python 3 if you want the Python module
 5. `pybind11` (CMake package) if you want the Python module
+6. For wheel builds: `pip install build scikit-build-core`
 
 If OpenMP is not available, the build will still work but without parallel speedups.
 
@@ -46,9 +47,20 @@ When installed, CMake will pick it up automatically during `./build_spheni.sh --
 ./build_spheni.sh --python
 ```
 
+### Enable local CPU tuning (`-march=native`)
+
+For local/source builds on your own machine, you can enable native CPU tuning:
+
+```bash
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DSPHENI_BUILD_PYTHON=ON -DSPHENI_ENABLE_MARCH_NATIVE=ON
+cmake --build build
+```
+
+Do not use this for redistributable binaries/wheels, since `-march=native` can make artifacts incompatible on other CPUs.
+
 This produces:
 1. `build/libspheni.a`
-2. `build/spheni*.so` (Python module)
+2. `build/_core*.so` (Python module)
 
 ### Run a C++ example
 
@@ -110,4 +122,28 @@ results = engine.search(query, 3)
 
 for hit in results:
     print(f"ID: {hit.id}, Distance: {hit.score}")
+```
+
+## Build a Python Wheel (PEP 427)
+
+From repo root:
+
+```bash
+python -m pip install --upgrade pip
+python -m pip wheel . --no-deps -w dist
+```
+
+Wheel builds keep `SPHENI_ENABLE_MARCH_NATIVE=OFF` by default for portability.
+
+This generates a wheel in `dist/`, for example:
+
+```bash
+dist/spheni-0.1.0-cp312-cp312-linux_x86_64.whl
+```
+
+Install and test:
+
+```bash
+python -m pip install dist/spheni-0.1.0-*.whl
+python -c "import spheni; print(spheni.Engine)"
 ```

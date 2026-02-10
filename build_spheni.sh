@@ -53,5 +53,5 @@ fi
 
 echo "Built static library at: ${BUILD_DIR}/libspheni.a"
 if [[ "${BUILD_PYTHON}" -eq 1 ]]; then
-    echo "Built Python module at: ${BUILD_DIR}/spheni*.so"
+    echo "Built Python module at: ${BUILD_DIR}/_core*.so"
 fi

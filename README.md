@@ -73,6 +73,20 @@ and then link with your C++/Python projects.
 
 Check out the [full guide](docs/wiki/building.md).
 
+Build a wheel (PEP 427):
+
+```bash
+python -m pip install --upgrade pip
+python -m pip wheel . --no-deps -w dist
+```
+
+For local-only source builds, you can enable native CPU tuning with:
+
+```bash
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DSPHENI_BUILD_PYTHON=ON -DSPHENI_ENABLE_MARCH_NATIVE=ON
+cmake --build build
+```
+
 ## Examples
 
 C++:

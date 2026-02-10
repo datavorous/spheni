@@ -9,10 +9,21 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 include(GNUInstallDirs)
 
+if(NOT DEFINED SPHENI_ENABLE_MARCH_NATIVE)
+    if(DEFINED SKBUILD)
+        set(SPHENI_ENABLE_MARCH_NATIVE OFF)
+    else()
+        set(SPHENI_ENABLE_MARCH_NATIVE ON)
+    endif()
+endif()
+
 if(MSVC)
     add_compile_options(/W4)
 else()
-    add_compile_options(-Wall -Wextra -Wpedantic -O3 -march=native)
+    add_compile_options(-Wall -Wextra -Wpedantic -O3)
+    if(SPHENI_ENABLE_MARCH_NATIVE)
+        add_compile_options(-march=native)
+    endif()
 endif()
 
 add_library(spheni STATIC
@@ -47,7 +58,7 @@ if(SPHENI_BUILD_PYTHON)
         src/python/bindings.cpp
     )
     target_link_libraries(spheni_py PRIVATE spheni)
-    set_target_properties(spheni_py PROPERTIES OUTPUT_NAME spheni)
+    set_target_properties(spheni_py PROPERTIES OUTPUT_NAME _core)
 endif()
 
 install(TARGETS spheni
@@ -58,7 +69,12 @@ install(DIRECTORY include/
 )
 
 if(SPHENI_BUILD_PYTHON)
+    if(DEFINED SKBUILD)
+        set(SPHENI_PY_INSTALL_DIR "spheni")
+    else()
+        set(SPHENI_PY_INSTALL_DIR "${CMAKE_INSTALL_LIBDIR}/spheni")
+    endif()
     install(TARGETS spheni_py
-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/spheni
+        LIBRARY DESTINATION ${SPHENI_PY_INSTALL_DIR}
     )
 endif()

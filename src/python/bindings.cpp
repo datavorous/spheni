@@ -36,7 +36,7 @@ std::span<const long long> as_id_span(const py::array &array) {
 }
 } // namespace
 
-PYBIND11_MODULE(spheni, m) {
+PYBIND11_MODULE(_core, m) {
   m.doc() = "spheni python bindings";
 
   py::enum_<spheni::Metric>(m, "Metric")
