@@ -18,11 +18,11 @@ endif()
 add_library(spheni STATIC
     src/core/engine.cpp
     src/core/factory.cpp
-    src/core/flat_index.cpp
-    src/core/ivf_index.cpp
-    src/utils/kernels.cpp
-    src/utils/kmeans.cpp
-    src/utils/topk.cpp
+    src/indexes/flat/flat_index.cpp
+    src/indexes/ivf/ivf_index.cpp
+    src/math/kernels.cpp
+    src/math/kmeans.cpp
+    src/math/topk.cpp
 )
 set_target_properties(spheni PROPERTIES POSITION_INDEPENDENT_CODE ON)
 

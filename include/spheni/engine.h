@@ -9,26 +9,30 @@
 namespace spheni {
 class Engine {
 public:
-    Engine(const IndexSpec& spec);
+  Engine(const IndexSpec &spec);
 
-    void add(std::span<const float> vectors);
-    void add(std::span<const long long> ids, std::span<const float> vectors);
+  void add(std::span<const float> vectors);
+  void add(std::span<const long long> ids, std::span<const float> vectors);
 
-    std::vector<SearchHit> search(std::span<const float> query, int k) const;
-    std::vector<SearchHit> search(std::span<const float> query, int k, int nprobe) const;
-    std::vector<std::vector<SearchHit>> search_batch(std::span<const float> queries, int k) const;
-    std::vector<std::vector<SearchHit>> search_batch(std::span<const float> queries, int k, int nprobe) const;
+  std::vector<SearchHit> search(std::span<const float> query, int k) const;
+  std::vector<SearchHit> search(std::span<const float> query, int k,
+                                int nprobe) const;
+  std::vector<std::vector<SearchHit>>
+  search_batch(std::span<const float> queries, int k) const;
+  std::vector<std::vector<SearchHit>>
+  search_batch(std::span<const float> queries, int k, int nprobe) const;
 
-    void train();
+  // this explicit training entrypoint is only valid for IVF
+  void train();
 
-    long long size() const;
-    int dim() const;
+  long long size() const;
+  int dim() const;
 
-    void save(const std::string& path) const;
-    static Engine load(const std::string& path);
+  void save(const std::string &path) const;
+  static Engine load(const std::string &path);
 
 private:
-    std::unique_ptr<Index> index_;
-    long long next_id_;
+  std::unique_ptr<Index> index_;
+  long long next_id_;
 };
-}
+} // namespace spheni

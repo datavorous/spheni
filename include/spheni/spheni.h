@@ -6,68 +6,63 @@
 
 namespace spheni {
 
-enum class Metric {
-    Cosine,
-    L2
-};
+enum class Metric { Cosine, L2 };
 
-enum class IndexKind {
-    Flat,
-    IVF
-};
+enum class IndexKind { Flat, IVF };
 
-enum class StorageType {
-    F32,
-    INT8
-};
+enum class StorageType { F32, INT8 };
 
 struct IndexSpec {
-    int dim;
-    
-    Metric metric;
-    bool normalize;
-    IndexKind kind;
-    StorageType storage;
+  int dim;
 
-    IndexSpec(int d, Metric m, IndexKind k, bool norm = true)
-        : dim(d), metric(m), normalize(norm), kind(k), storage(StorageType::F32), nlist(0) {}
+  Metric metric;
+  bool normalize;
+  IndexKind kind;
+  StorageType storage;
 
-    IndexSpec(int d, Metric m, IndexKind k, StorageType s, bool norm = true)
-        : dim(d), metric(m), normalize(norm), kind(k), storage(s), nlist(0) {}
+  IndexSpec(int d, Metric m, IndexKind k, bool norm = true)
+      : dim(d), metric(m), normalize(norm), kind(k), storage(StorageType::F32),
+        nlist(0) {}
 
-    int nlist;
-    IndexSpec(int d, Metric m, IndexKind k, int nl, bool norm = true)
-        : dim(d), metric(m), normalize(norm), kind(k), storage(StorageType::F32), nlist(nl) {}
+  IndexSpec(int d, Metric m, IndexKind k, StorageType s, bool norm = true)
+      : dim(d), metric(m), normalize(norm), kind(k), storage(s), nlist(0) {}
 
-    IndexSpec(int d, Metric m, IndexKind k, int nl, StorageType s, bool norm = true)
-        : dim(d), metric(m), normalize(norm), kind(k), storage(s), nlist(nl) {}
+  int nlist;
+  IndexSpec(int d, Metric m, IndexKind k, int nl, bool norm = true)
+      : dim(d), metric(m), normalize(norm), kind(k), storage(StorageType::F32),
+        nlist(nl) {}
+
+  IndexSpec(int d, Metric m, IndexKind k, int nl, StorageType s,
+            bool norm = true)
+      : dim(d), metric(m), normalize(norm), kind(k), storage(s), nlist(nl) {}
 };
 
 struct SearchParams {
-    int k;
-    SearchParams(int k_) : k(k_), nprobe(1) {}
+  int k;
+  SearchParams(int k_) : k(k_), nprobe(1) {}
 
-    int nprobe;
-    SearchParams(int k_, int np) : k(k_), nprobe(np) {}
+  int nprobe;
+  SearchParams(int k_, int np) : k(k_), nprobe(np) {}
 };
 
 struct SearchHit {
-    long long id;
-    float score;
-    SearchHit(long long id_, float score_) : id(id_), score(score_) {}
+  long long id;
+  float score;
+  SearchHit(long long id_, float score_) : id(id_), score(score_) {}
 };
-
 
 class Index {
 public:
-    virtual ~Index() = default;
-    virtual void add(std::span<const long long> ids, std::span<const float> vectors) = 0;
-    
-    // returns k hits sorted by score descending
-    virtual std::vector<SearchHit> search(std::span<const float> query, const SearchParams& params) const = 0;
-    virtual long long size() const = 0;
-    virtual int dim() const = 0;
+  virtual ~Index() = default;
+  virtual void add(std::span<const long long> ids,
+                   std::span<const float> vectors) = 0;
+
+  // score is descending
+  virtual std::vector<SearchHit> search(std::span<const float> query,
+                                        const SearchParams &params) const = 0;
+  virtual long long size() const = 0;
+  virtual int dim() const = 0;
 };
 
-std::unique_ptr<Index> make_index(const IndexSpec& spec);
-}
+std::unique_ptr<Index> make_index(const IndexSpec &spec);
+} // namespace spheni
