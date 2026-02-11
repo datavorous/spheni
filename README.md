@@ -60,6 +60,27 @@ It embeds text once and uses Spheni for fast, offline vector search.
 
 ## Getting Started
 
+Command launcher note:
+- Linux/macOS: use `python3` if `python` is not available.
+- Windows: use `py` (for example, `py -m pip install spheni`).
+
+### Quick Start (Python package)
+
+Install from PyPI:
+
+```bash
+python -m pip install --upgrade pip
+python -m pip install spheni
+```
+
+Verify:
+
+```bash
+python -c "import spheni; print(spheni.__version__)"
+```
+
+### Build From Source (C++ / local Python module)
+
 Git clone and navigate into the root directory.
 Have CMake, pybind11 and OpenMP installed.
 
@@ -69,11 +90,9 @@ Build from the repo root:
 ./build_spheni.sh --python --install ./dist
 ```
 
-and then link with your C++/Python projects.
-
 Check out the [full guide](docs/wiki/building.md).
 
-Build a wheel (PEP 427):
+Build a local wheel (PEP 427):
 
 ```bash
 python -m pip install --upgrade pip
@@ -133,6 +152,8 @@ INT8 quantization reduces memory by ~73% with negligible accuracy loss, and Open
 Read the full [benchmark report](docs/benchmarks/benchmarks.md).
 
 ## Architecture
+
+Architecture snapshot reference: [`docs/arch/v0.1.1.md`](docs/arch/v0.1.1.md).
 
 Current code is split by responsibility:
 

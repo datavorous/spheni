@@ -13,6 +13,10 @@ This guide covers compiling Spheni, running examples, and using it from other fo
 
 If OpenMP is not available, the build will still work but without parallel speedups.
 
+Python command launcher note:
+- Linux/macOS: use `python3` if `python` is not available.
+- Windows: use `py` (for example, `py -m pip install pybind11`).
+
 ### Note for `pybind11`
 
 - System package manager (recommended for CMake `find_package`)

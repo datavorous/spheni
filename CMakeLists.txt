@@ -9,6 +9,14 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 include(GNUInstallDirs)
 
+if(NOT DEFINED SPHENI_REQUIRE_OPENMP)
+    if(DEFINED SKBUILD)
+        set(SPHENI_REQUIRE_OPENMP ON)
+    else()
+        set(SPHENI_REQUIRE_OPENMP OFF)
+    endif()
+endif()
+
 if(NOT DEFINED SPHENI_ENABLE_MARCH_NATIVE)
     if(DEFINED SKBUILD)
         set(SPHENI_ENABLE_MARCH_NATIVE OFF)
@@ -39,7 +47,11 @@ set_target_properties(spheni PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 option(SPHENI_BUILD_PYTHON "Build Python bindings" ON)
 
-find_package(OpenMP)
+if(SPHENI_REQUIRE_OPENMP)
+    find_package(OpenMP REQUIRED COMPONENTS CXX)
+else()
+    find_package(OpenMP)
+endif()
 if(OpenMP_CXX_FOUND)
     target_link_libraries(spheni PUBLIC OpenMP::OpenMP_CXX)
 endif()

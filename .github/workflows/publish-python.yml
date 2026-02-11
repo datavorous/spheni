@@ -33,6 +33,9 @@ jobs:
           CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-*"
           CIBW_SKIP: "*-musllinux*"
           CIBW_OUTPUT_DIR: wheelhouse
+          CIBW_ENVIRONMENT: "CMAKE_ARGS='-DSPHENI_REQUIRE_OPENMP=ON'"
+          CIBW_BEFORE_ALL_MACOS: "brew install libomp"
+          CIBW_ENVIRONMENT_MACOS: "CMAKE_ARGS='-DSPHENI_REQUIRE_OPENMP=ON -DCMAKE_PREFIX_PATH=/opt/homebrew/opt/libomp;/usr/local/opt/libomp'"
           CIBW_ARCHS_LINUX: "x86_64"
           CIBW_ARCHS_WINDOWS: "AMD64"
           CIBW_ARCHS_MACOS: "x86_64 arm64"

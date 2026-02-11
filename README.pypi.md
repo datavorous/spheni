@@ -3,7 +3,6 @@
 A tiny CPU-first, in-memory vector search library in C++ with Python bindings.
 
 - Source: https://github.com/datavorous/spheni
-- Docs: https://github.com/datavorous/spheni/tree/main/docs/wiki
 - License: Apache-2.0
 
 ## Install
@@ -48,7 +47,6 @@ Then install the wheel from `dist/`.
 
 ## Links
 
-- Full README: https://github.com/datavorous/spheni/blob/main/README.md
-- Python API: https://github.com/datavorous/spheni/blob/main/docs/wiki/python_api.md
-- C++ API: https://github.com/datavorous/spheni/blob/main/docs/wiki/cpp_api.md
-- Build Guide: https://github.com/datavorous/spheni/blob/main/docs/wiki/building.md
+- Full README: https://github.com/datavorous/spheni/blob/master/README.md
+- Python API: https://github.com/datavorous/spheni/blob/master/docs/wiki/python_api.md
+- Build Guide: https://github.com/datavorous/spheni/blob/master/docs/wiki/building.md

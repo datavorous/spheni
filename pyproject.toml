@@ -7,7 +7,7 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "spheni"
-version = "0.1.0"
+version = "0.1.1"
 description = "A tiny CPU-first, in-memory vector search library in C++ with Python bindings."
 readme = "README.pypi.md"
 requires-python = ">=3.9"
@@ -23,6 +23,8 @@ classifiers = [
   "Programming Language :: Python :: 3 :: Only",
   "Programming Language :: C++",
   "Operating System :: POSIX :: Linux",
+  "Operating System :: MacOS",
+  "Operating System :: Microsoft :: Windows",
   "License :: OSI Approved :: Apache Software License",
 ]
 
@@ -39,3 +41,4 @@ wheel.packages = ["python/spheni"]
 [tool.scikit-build.cmake.define]
 SPHENI_BUILD_PYTHON = "ON"
 SPHENI_ENABLE_MARCH_NATIVE = "OFF"
+SPHENI_REQUIRE_OPENMP = "ON"
