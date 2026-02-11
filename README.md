@@ -61,7 +61,7 @@ It embeds text once and uses Spheni for fast, offline vector search.
 ## Getting Started
 
 Command launcher note:
-- Linux/macOS: use `python3` if `python` is not available.
+- Linux: use `python3` if `python` is not available.
 - Windows: use `py` (for example, `py -m pip install spheni`).
 
 ### Quick Start (Python package)

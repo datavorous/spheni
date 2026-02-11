@@ -23,7 +23,6 @@ classifiers = [
   "Programming Language :: Python :: 3 :: Only",
   "Programming Language :: C++",
   "Operating System :: POSIX :: Linux",
-  "Operating System :: MacOS",
   "Operating System :: Microsoft :: Windows",
   "License :: OSI Approved :: Apache Software License",
 ]
