@@ -18,14 +18,15 @@
 1. [Overview](#overview)
 2. [Features](#features)
 3. [Applications](#applications)
-4. [Getting Started](#getting-started)
-5. [Examples](#examples)
-6. [Benchmarks](#benchmarks)
-7. [Architecture](#architecture)
-8. [Status](#status)
-9. [Roadmap](#roadmap)
-10. [License](#license)
-11. [Disclosure](#disclosure)
+4. [Try It Out](#try-it-out)
+5. [Getting Started](#getting-started)
+6. [Examples](#examples)
+7. [Benchmarks](#benchmarks)
+8. [Architecture](#architecture)
+9. [Status](#status)
+10. [Roadmap](#roadmap)
+11. [License](#license)
+12. [Disclosure](#disclosure)
 
 ## Overview
 
@@ -57,6 +58,14 @@ It retrieves relevant lines based on meaning rather than exact keywords.
 It embeds text once and uses Spheni for fast, offline vector search.
 
 ![sphgrep](media/sphgrep.png)
+
+## Try It Out
+
+Run this semantic paper search demo in Google Colab:
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/gist/datavorous/ad63983c52769d2efc3c87cbdac10d72/arxiv_demo.ipynb)
+
+Searches 5000 ArXiv papers using IVF + INT8 quantization in ~25 lines of code.
 
 ## Getting Started
 
@@ -192,20 +201,12 @@ Current limitations:
 
 ## Roadmap
 
-Short term:
-
-- [ ] Parameter validation + explicit error handling [partially done]
-- [x] Expose IVF training state
-- [ ] Improve IVF memory locality
-- [ ] Flat index optimizations
-
-Longer term:
-
-- [ ] SIMD kernels
-- [x] Multithreading (just query search)
-- [x] Persistence
-- [X] Quantized storage (INT8 : Scalar Quantization)
-- [ ] Additional ANN structures
+- [ ] Harden memory alignment; cut search-time allocations
+- [ ] Improve IVF cache locality (repack cluster layout)
+- [ ] Parallelize `search_batch`, Flat scan, and IVF training
+- [ ] Add SIMD kernels + runtime ISA dispatch
+- [ ] Micro-optimize distance and INT8 scoring kernels
+- [ ] Retune Top-K for small `k` and faster merge
 
 ## References
 
