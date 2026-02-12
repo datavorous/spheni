@@ -6,7 +6,9 @@
 #include <random>
 
 namespace spheni::math::clustering {
-KMeans::KMeans(int k, int dim, int max_iters, std::uint32_t seed)
+KMeans::KMeans(int k, int dim,
+               std::uint32_t seed,
+               int max_iters)
     : k_(k), dim_(dim), max_iters_(max_iters), seed_(seed) {}
 
 std::vector<float> KMeans::fit(std::span<const float> vectors) {
