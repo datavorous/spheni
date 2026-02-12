@@ -41,6 +41,7 @@ dist/
 benchmark.cpp
 data/
 .venv/
+venv/
 .env
 .env.*
 release.local.md

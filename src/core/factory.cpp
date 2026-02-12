@@ -8,6 +8,20 @@ std::unique_ptr<Index> make_index(const IndexSpec &spec) {
   // switch(spec.kind) { case IndexKind::Flat: continue; }
   // return std::make_unique<FlatIndex>(spec);
 
+  if (spec.metric == Metric::Haversine) {
+    if (spec.dim != 2) {
+      throw std::invalid_argument("Haversine metric requires dim=2");
+    }
+    if (spec.kind == IndexKind::IVF) {
+      throw std::invalid_argument(
+          "Haversine metric does not support IVF index");
+    }
+    if (spec.normalize) {
+      throw std::invalid_argument(
+          "Haversine metric does not support normalization");
+    }
+  }
+
   switch (spec.kind) {
   case IndexKind::Flat:
     return std::make_unique<FlatIndex>(spec);
