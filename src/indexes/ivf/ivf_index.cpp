@@ -35,7 +35,7 @@ void IVFIndex::train() {
     throw std::runtime_error("IVFIndex::train: not enough vectors to train.");
   }
 
-  math::clustering::KMeans kmeans(spec_.nlist, spec_.dim);
+  math::clustering::KMeans kmeans(spec_.nlist, spec_.dim, 25, spec_.seed);
   centroids_ = kmeans.fit(untrained_vectors_);
 
   auto assignments = kmeans.predict(untrained_vectors_, centroids_);

@@ -6,8 +6,8 @@
 #include <random>
 
 namespace spheni::math::clustering {
-KMeans::KMeans(int k, int dim, int max_iters)
-    : k_(k), dim_(dim), max_iters_(max_iters) {}
+KMeans::KMeans(int k, int dim, int max_iters, std::uint32_t seed)
+    : k_(k), dim_(dim), max_iters_(max_iters), seed_(seed) {}
 
 std::vector<float> KMeans::fit(std::span<const float> vectors) {
   long long n = vectors.size() / dim_;
@@ -20,7 +20,7 @@ std::vector<float> KMeans::fit(std::span<const float> vectors) {
 
   std::vector<float> centroids(k_ * dim_);
   std::vector<bool> chosen(n, false);
-  std::mt19937 rng(42);
+  std::mt19937 rng(seed_);
 
   std::uniform_int_distribution<long long> dist(0, n - 1);
   long long first_idx = dist(rng);

@@ -20,6 +20,10 @@ struct IndexSpec {
   IndexKind kind;
   StorageType storage;
 
+  int nlist;
+
+  std::uint32_t seed = 42; // determinism knob
+
   IndexSpec(int d, Metric m, IndexKind k, bool norm = true)
       : dim(d), metric(m), normalize(norm), kind(k), storage(StorageType::F32),
         nlist(0) {}
@@ -27,7 +31,6 @@ struct IndexSpec {
   IndexSpec(int d, Metric m, IndexKind k, StorageType s, bool norm = true)
       : dim(d), metric(m), normalize(norm), kind(k), storage(s), nlist(0) {}
 
-  int nlist;
   IndexSpec(int d, Metric m, IndexKind k, int nl, bool norm = true)
       : dim(d), metric(m), normalize(norm), kind(k), storage(StorageType::F32),
         nlist(nl) {}
