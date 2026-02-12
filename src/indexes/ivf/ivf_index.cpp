@@ -29,6 +29,9 @@ void IVFIndex::train() {
   if (untrained_vectors_.empty()) {
     throw std::runtime_error("IVFIndex::train: no vectors to train on.");
   }
+  if (spec_.metric == Metric::Haversine) {
+    throw std::runtime_error("IVFIndex::train: Haversine not supported.");
+  }
 
   long long n = untrained_vectors_.size() / spec_.dim;
   if (n < spec_.nlist) {
@@ -73,6 +76,10 @@ void IVFIndex::add(std::span<const long long> ids,
     if (ids[i] >= 0) {
       ++nonneg;
     }
+  }
+
+  if (spec_.metric == Metric::Haversine) {
+    throw std::runtime_error("IVFIndex::add: Haversine not supported.");
   }
 
   if (!is_trained_) {
@@ -133,6 +140,8 @@ float IVFIndex::compute_score(const float *query, const float *db_vec) const {
     return math::kernels::dot(query, db_vec, spec_.dim);
   case Metric::L2:
     return -math::kernels::l2_squared(query, db_vec, spec_.dim);
+  case Metric::Haversine:
+    return -math::kernels::haversine(query, db_vec, spec_.dim);
   default:
     return 0.0f;
   }
@@ -158,6 +167,9 @@ static float compute_score_int8(const float *query, const std::int8_t *db_vec,
     }
     return -sum;
   }
+  case Metric::Haversine:
+    throw std::runtime_error(
+        "IVFIndex::compute_score_int8: Haversine not supported.");
   default:
     return 0.0f;
   }

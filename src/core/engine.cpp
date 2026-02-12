@@ -151,7 +151,7 @@ Engine Engine::load(const std::string &path) {
   if (dim <= 0) {
     throw std::runtime_error("Engine::load: invalid dimension.");
   }
-  if (metric_raw < 0 || metric_raw > 1) {
+  if (metric_raw < 0 || metric_raw > 2) {
     throw std::runtime_error("Engine::load: invalid metric.");
   }
   if (kind_raw < 0 || kind_raw > 1) {
