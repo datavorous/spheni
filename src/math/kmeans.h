@@ -6,7 +6,9 @@
 namespace spheni::math::clustering {
 class KMeans {
 public:
-  KMeans(int k, int dim, int max_iters = 25, std::uint32_t seed = 42);
+KMeans(int k, int dim,
+       std::uint32_t seed = 42,
+       int max_iters = 25);
 
   std::vector<float> fit(std::span<const float> vectors);
   std::vector<int> predict(std::span<const float> vectors,
