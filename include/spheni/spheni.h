@@ -3,7 +3,7 @@
 #include <memory>
 #include <span>
 #include <vector>
-
+ 
 namespace spheni {
 
 enum class Metric { Cosine, L2 };
