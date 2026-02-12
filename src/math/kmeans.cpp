@@ -1,6 +1,6 @@
 #include "math/kmeans.h"
 #include "math/kernels.h"
-
+#include <cstdint>
 #include <algorithm>
 #include <limits>
 #include <random>
