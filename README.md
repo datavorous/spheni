@@ -35,7 +35,7 @@ Spheni is a C++ library with Python bindings to search for points in space that 
 ## Features
 
 1. Indexes: Flat, IVF
-2. Metrics: Cosine, L2
+2. Metrics: Cosine, L2, Haversine
 3. Storage: F32, INT8
 4. Ops: add, search, search_batch, train, save, load
 
@@ -58,6 +58,10 @@ It retrieves relevant lines based on meaning rather than exact keywords.
 It embeds text once and uses Spheni for fast, offline vector search.
 
 ![sphgrep](media/sphgrep.png)
+
+### Geospatial Search
+
+It can index locations (latitude, longitude) and find nearest neighbors using the Haversine formula, returning distances in kilometers. Perfect for "find stores near me" features.
 
 ## Try It Out
 
