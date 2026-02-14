@@ -30,6 +30,11 @@ void FlatIndex::add(std::span<const long long> ids,
       }
     }
   } else if (spec_.storage == StorageType::INT8) {
+    if (spec_.metric == Metric::Haversine) {
+      throw std::runtime_error(
+          "FlatIndex::add: Haversine not supported with INT8.");
+    }
+
     std::vector<float> vec_copy;
     if (spec_.normalize && spec_.metric == Metric::Cosine) {
       vec_copy.assign(vectors.begin(), vectors.end());
@@ -43,10 +48,6 @@ void FlatIndex::add(std::span<const long long> ids,
         vec = vec_mut;
       }
       quantization::quantize_vector(vec, spec_.dim, vectors_i8_, scales_);
-    }
-    if (spec_.metric == Metric::Haversine) {
-      throw std::runtime_error(
-          "FlatIndex::add: Haversine not supported with INT8.");
     }
   } else {
     throw std::runtime_error("FlatIndex::add: unsupported storage type.");
