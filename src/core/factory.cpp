@@ -20,6 +20,10 @@ std::unique_ptr<Index> make_index(const IndexSpec &spec) {
       throw std::invalid_argument(
           "Haversine metric does not support normalization");
     }
+    if (spec.storage == StorageType::INT8) {
+      throw std::invalid_argument(
+          "Haversine metric does not support INT8 storage");
+    }
   }
 
   switch (spec.kind) {
