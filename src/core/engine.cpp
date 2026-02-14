@@ -53,11 +53,12 @@ std::vector<std::vector<SearchHit>>
 Engine::search_batch(std::span<const float> queries, int k) const {
   int d = index_->dim();
   long long n = queries.size() / d;
-  std::vector<std::vector<SearchHit>> results;
+  std::vector<std::vector<SearchHit>> results(n);
 
+#pragma omp parallel for schedule(static)
   for (long long i = 0; i < n; ++i) {
     std::span<const float> query(queries.data() + i * d, d);
-    results.push_back(search(query, k, 1));
+    results[i] = search(query, k, 1);
   }
 
   return results;
