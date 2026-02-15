@@ -61,7 +61,12 @@ It embeds text once and uses Spheni for fast, offline vector search.
 
 ### Geospatial Search
 
-It can index locations (latitude, longitude) and find nearest neighbors using the Haversine formula, returning distances in kilometers. Perfect for "find stores near me" features.
+It can index locations (latitude, longitude) and find nearest neighbors using the Haversine formula, returning distances in kilometers.
+
+> [!IMPORTANT]
+> Haversine search currently requires **2D vectors** (latitude, longitude), must use **unnormalized F32 storage**, and is only supported on **Flat indexes** (no IVF or INT8 quantization).
+
+Perfect for "find stores near me" features.
 
 ## Try It Out
 
