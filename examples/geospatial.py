@@ -5,7 +5,7 @@ def main():
     # 1. Create an index with Haversine metric
     #    Note: dimension MUST be 2 (latitude, longitude)
     #    Note: normalization MUST be False
-    spec = spheni.IndexSpec(2, spheni.Metric.Haversine, spheni.IndexKind.Flat)
+    spec = spheni.IndexSpec(2, spheni.Metric.Haversine, spheni.IndexKind.Flat, False)
     engine = spheni.Engine(spec)
 
     # 2. Add some locations (Latitude, Longitude)
