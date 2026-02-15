@@ -6,7 +6,7 @@
 
 namespace spheni {
 
-enum class Metric { Cosine, L2 };
+enum class Metric { Cosine, L2, Haversine };
 
 enum class IndexKind { Flat, IVF };
 

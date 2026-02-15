@@ -41,7 +41,8 @@ PYBIND11_MODULE(_core, m) {
 
   py::enum_<spheni::Metric>(m, "Metric")
       .value("Cosine", spheni::Metric::Cosine)
-      .value("L2", spheni::Metric::L2);
+      .value("L2", spheni::Metric::L2)
+      .value("Haversine", spheni::Metric::Haversine);
 
   py::enum_<spheni::IndexKind>(m, "IndexKind")
       .value("Flat", spheni::IndexKind::Flat)

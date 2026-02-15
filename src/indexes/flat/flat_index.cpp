@@ -30,6 +30,11 @@ void FlatIndex::add(std::span<const long long> ids,
       }
     }
   } else if (spec_.storage == StorageType::INT8) {
+    if (spec_.metric == Metric::Haversine) {
+      throw std::runtime_error(
+          "FlatIndex::add: Haversine not supported with INT8.");
+    }
+
     std::vector<float> vec_copy;
     if (spec_.normalize && spec_.metric == Metric::Cosine) {
       vec_copy.assign(vectors.begin(), vectors.end());
@@ -58,6 +63,9 @@ float FlatIndex::compute_score(const float *query, const float *db_vec) const {
 
   case Metric::L2:
     return -math::kernels::l2_squared(query, db_vec, spec_.dim);
+
+  case Metric::Haversine:
+    return -math::kernels::haversine(query, db_vec, spec_.dim);
   }
 
   return 0.0f;
@@ -84,6 +92,9 @@ float FlatIndex::compute_score_int8(const float *query,
     }
     return -sum;
   }
+  case Metric::Haversine:
+    throw std::runtime_error(
+        "FlatIndex::compute_score_int8: Haversine not supported with INT8.");
   }
   return 0.0f;
 }
