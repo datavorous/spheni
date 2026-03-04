@@ -1,5 +1,4 @@
 #include "math/kernels.h"
-#include <algorithm>
 #include <cmath>
 
 namespace spheni::math::kernels {

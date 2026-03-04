@@ -8,22 +8,20 @@ namespace spheni::math {
 
 class TopK {
 public:
-  TopK(int k);
+  explicit TopK(int k);
 
   void push(long long id, float score);
-  std::vector<SearchHit> sorted_results();
+
+  std::vector<SearchHit> take_sorted();
 
 private:
   int k_;
-
-  struct CompareHit {
+  struct WorseScore {
     bool operator()(const SearchHit &a, const SearchHit &b) const {
       return a.score > b.score;
-      // smaller score has higher priority
     }
   };
-
-  std::priority_queue<SearchHit, std::vector<SearchHit>, CompareHit> heap_;
+  std::priority_queue<SearchHit, std::vector<SearchHit>, WorseScore> heap_;
 };
 
 } // namespace spheni::math

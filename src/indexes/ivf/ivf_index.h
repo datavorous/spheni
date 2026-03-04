@@ -1,45 +1,32 @@
 #pragma once
-
-#include "spheni/spheni.h"
-#include <cstdint>
-#include <iosfwd>
-#include <span>
+#include "indexes/flat/flat_index.h"
 #include <vector>
 
 namespace spheni {
 class IVFIndex : public Index {
 public:
-  IVFIndex(const IndexSpec &spec);
+  explicit IVFIndex(const IndexSpec &spec);
+
+  void train() override;
   void add(std::span<const long long> ids,
            std::span<const float> vectors) override;
   std::vector<SearchHit> search(std::span<const float> query,
                                 const SearchParams &params) const override;
-  void train();
-
-  long long size() const override { return total_vectors_; }
+  const IndexSpec &spec() const override { return spec_; }
+  long long size() const override { return ntotal_; }
   int dim() const override { return spec_.dim; }
 
-  const IndexSpec &spec() const { return spec_; }
-  void save_state(std::ostream &out) const;
-  void load_state(std::istream &in);
-
 private:
+  bool should_normalize() const;
+  int nearest_centroid(const float *vec) const;
+
   IndexSpec spec_;
-
   std::vector<float> centroids_;
-  std::vector<std::vector<float>> cluster_vectors_;
-  std::vector<std::vector<std::int8_t>> cluster_vectors_i8_;
-  std::vector<std::vector<float>> cluster_scales_;
-  std::vector<std::vector<long long>> cluster_ids_;
+  std::vector<FlatIndex> cells_;
+  long long ntotal_ = 0;
+  bool trained_ = false;
 
-  long long total_vectors_;
-  bool is_trained_;
-
-  // this pre training buffer will be populated by add()
-  std::vector<float> untrained_vectors_;
-  std::vector<long long> untrained_ids_;
-
-  int find_nearest_centroid(const float *vector) const;
-  float compute_score(const float *query, const float *vector) const;
+  std::vector<float> pending_vecs_;
+  std::vector<long long> pending_ids_;
 };
 } // namespace spheni

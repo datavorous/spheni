@@ -1,9 +1,5 @@
 #pragma once
-
 #include "spheni/spheni.h"
-#include <cstdint>
-#include <iosfwd>
-#include <span>
 #include <vector>
 
 namespace spheni {
@@ -14,27 +10,23 @@ public:
 
   void add(std::span<const long long> ids,
            std::span<const float> vectors) override;
-
   std::vector<SearchHit> search(std::span<const float> query,
                                 const SearchParams &params) const override;
 
-  const IndexSpec &spec() const { return spec_; }
-  void save_state(std::ostream &out) const;
-  void load_state(std::istream &in);
+  const IndexSpec &spec() const override { return spec_; }
 
-  long long size() const override { return ids_.size(); }
+  long long size() const override {
+    return static_cast<long long>(ids_.size());
+  }
+
   int dim() const override { return spec_.dim; }
 
 private:
+  bool should_normalize() const;
+  float score_f32(const float *q, const float *v) const;
+
   IndexSpec spec_;
-
   std::vector<float> vectors_;
-  std::vector<std::int8_t> vectors_i8_;
-  std::vector<float> scales_;
   std::vector<long long> ids_;
-  float compute_score(const float *query, const float *db_vec) const;
-  float compute_score_int8(const float *query, const std::int8_t *db_vec,
-                           float scale) const;
 };
-
 } // namespace spheni

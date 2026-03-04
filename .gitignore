@@ -38,9 +38,3 @@ demo/
 dist/
 *.bin
 *.spheni
-benchmark.cpp
-data/
-.venv/
-.env
-.env.*
-release.local.md

@@ -3,36 +3,29 @@
 #include "spheni/spheni.h"
 #include <memory>
 #include <span>
-#include <string>
 #include <vector>
 
 namespace spheni {
 class Engine {
 public:
-  Engine(const IndexSpec &spec);
+  explicit Engine(IndexSpec spec);
 
   void add(std::span<const float> vectors);
   void add(std::span<const long long> ids, std::span<const float> vectors);
 
   std::vector<SearchHit> search(std::span<const float> query, int k) const;
-  std::vector<SearchHit> search(std::span<const float> query, int k,
-                                int nprobe) const;
+  std::vector<SearchHit> search(std::span<const float> query,
+                                SearchParams p) const;
+
   std::vector<std::vector<SearchHit>>
-  search_batch(std::span<const float> queries, int k) const;
-  std::vector<std::vector<SearchHit>>
-  search_batch(std::span<const float> queries, int k, int nprobe) const;
+  search_batch(std::span<const float> queries, SearchParams p) const;
 
-  // this explicit training entrypoint is only valid for IVF
-  void train();
-
-  long long size() const;
-  int dim() const;
-
-  void save(const std::string &path) const;
-  static Engine load(const std::string &path);
+  void train() { index_->train(); }
+  long long size() const { return index_->size(); }
+  int dim() const { return index_->dim(); }
 
 private:
   std::unique_ptr<Index> index_;
-  long long next_id_;
+  long long next_id_ = 0;
 };
 } // namespace spheni
