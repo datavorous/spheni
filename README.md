@@ -8,25 +8,20 @@ Small in-memory vector search library in C++.
 ./build.sh
 ```
 
-This builds:
+## Examples
 
-- `build/libspheni.a`
-- `build/example`
-
-## Minimal usage
-
-See [example.cpp](example.cpp).
-
-Run it after build:
+Flat index:
 
 ```bash
-./build/example
+./build/example_flat
 ```
 
-## Layout
+Source: `examples/flat/example.cpp`
 
-- `include/spheni/`: public headers
-- `src/core/`: engine and factory
-- `src/indexes/`: flat and IVF indexes
-- `src/math/`: kernels, kmeans, top-k
-- `src/io/`: serialization helpers
+IVF index:
+
+```bash
+./build/example_ivf
+```
+
+Source: `examples/ivf/example.cpp`

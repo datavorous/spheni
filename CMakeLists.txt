@@ -31,5 +31,8 @@ if(OpenMP_CXX_FOUND)
   target_link_libraries(spheni PUBLIC OpenMP::OpenMP_CXX)
 endif()
 
-add_executable(example example.cpp)
-target_link_libraries(example PRIVATE spheni)
+add_executable(example_flat examples/flat/example.cpp)
+target_link_libraries(example_flat PRIVATE spheni)
+
+add_executable(example_ivf examples/ivf/example.cpp)
+target_link_libraries(example_ivf PRIVATE spheni)
