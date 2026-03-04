@@ -1,3 +1,11 @@
+> [!CAUTION]
+> ## Ongoing Rewrite
+> The project is undergoing an architectural rewrite aimed at simplifying the
+> codebase and focusing on a smaller, clearer in-memory ANN engine.
+>
+> - `main`: original implementation used in earlier experiments and benchmarks
+> - `rewrite`: simplified core architecture under active development
+
 <p align="center">
   <img src="media/spheni.png" width="700">
 </p>
