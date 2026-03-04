@@ -10,7 +10,7 @@ public:
 
   std::vector<float> fit(std::span<const float> vectors);
   std::vector<int> predict(std::span<const float> vectors,
-                           std::vector<float> centroids) const;
+                           std::span<const float> centroids) const;
 
 private:
   int k_;

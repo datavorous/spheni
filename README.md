@@ -16,7 +16,7 @@ Flat index:
 ./build/example_flat
 ```
 
-Source: `examples/flat/example.cpp`
+Source: `examples/flat.cpp`
 
 IVF index:
 
@@ -24,4 +24,4 @@ IVF index:
 ./build/example_ivf
 ```
 
-Source: `examples/ivf/example.cpp`
+Source: `examples/ivf.cpp`

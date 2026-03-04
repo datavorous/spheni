@@ -1,6 +1,6 @@
 #pragma once
 
-#include "spheni/spheni.h"
+#include "spheni.h"
 #include <queue>
 #include <vector>
 
@@ -8,20 +8,34 @@ namespace spheni::math {
 
 class TopK {
 public:
-  explicit TopK(int k);
+  explicit TopK(int k) : k_(k) {}
 
-  void push(long long id, float score);
+  void push(long long id, float score) {
+    if (heap_.size() < static_cast<std::size_t>(k_)) {
+      heap_.emplace(id, score);
+    } else if (score > heap_.top().score) {
+      heap_.pop();
+      heap_.emplace(id, score);
+    }
+  }
 
-  std::vector<SearchHit> take_sorted();
+  std::vector<Hit> take_sorted() {
+    std::vector<Hit> results(heap_.size());
+    for (auto it = results.rbegin(); it != results.rend(); ++it) {
+      *it = heap_.top();
+      heap_.pop();
+    }
+    return results;
+  }
 
 private:
   int k_;
   struct WorseScore {
-    bool operator()(const SearchHit &a, const SearchHit &b) const {
+    bool operator()(const Hit &a, const Hit &b) const {
       return a.score > b.score;
     }
   };
-  std::priority_queue<SearchHit, std::vector<SearchHit>, WorseScore> heap_;
+  std::priority_queue<Hit, std::vector<Hit>, WorseScore> heap_;
 };
 
 } // namespace spheni::math
