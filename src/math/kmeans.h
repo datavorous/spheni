@@ -5,16 +5,16 @@
 
 namespace spheni::math::clustering {
 class KMeans {
-public:
-  KMeans(int k, int dim, int max_iters = 25);
+      public:
+        KMeans(int k, int dim, int max_iters = 25);
 
-  std::vector<float> fit(std::span<const float> vectors);
-  std::vector<int> predict(std::span<const float> vectors,
-                           std::span<const float> centroids) const;
+        std::vector<float> fit(std::span<const float> vectors);
+        std::vector<int> predict(std::span<const float> vectors,
+                                 std::span<const float> centroids) const;
 
-private:
-  int k_;
-  int dim_;
-  int max_iters_;
+      private:
+        int k_;
+        int dim_;
+        int max_iters_;
 };
 } // namespace spheni::math::clustering

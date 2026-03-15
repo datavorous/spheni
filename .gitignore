@@ -38,3 +38,6 @@ demo/
 dist/
 *.bin
 *.spheni
+cohere/
+progress.txt
+benchmarks
