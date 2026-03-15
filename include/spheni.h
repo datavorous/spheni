@@ -1,4 +1,6 @@
 #pragma once
+#include "../src/math/pq.h"
+#include <memory>
 #include <span>
 #include <vector>
 
@@ -15,6 +17,11 @@ struct Spec {
 struct IVFSpec : Spec {
         int nlist = 0;
         int nprobe = 1;
+};
+
+struct PQFlatSpec : Spec {
+        int M = 8;
+        int ksub = 256;
 };
 
 struct Hit {
@@ -56,4 +63,26 @@ class IVFIndex {
         int nearest_centroid(const float *vec) const;
 };
 
+class PQFlatIndex {
+      public:
+        explicit PQFlatIndex(const PQFlatSpec &spec);
+
+        void train(std::span<const float> vecs);
+        void add(std::span<const long long> ids, std::span<const float> vecs);
+        std::vector<Hit> search(std::span<const float> query, int k) const;
+        long long size() const { return ids_.size(); }
+
+        size_t compressed_bytes() const { return codes_.size(); }
+        size_t uncompressed_bytes() const {
+                return ids_.size() * spec_.dim * sizeof(float);
+        }
+
+      private:
+        PQFlatSpec spec_;
+        std::unique_ptr<math::ProductQuantizer> pq_;
+        std::vector<long long> ids_;
+        std::vector<uint8_t> codes_;
+        bool trained_ = false;
+        bool should_normalize() const;
+};
 } // namespace spheni

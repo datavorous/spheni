@@ -7,7 +7,7 @@ namespace spheni {
 FlatIndex::FlatIndex(const Spec &spec) : spec_(spec) {}
 
 bool FlatIndex::should_normalize() const {
-        return spec_.normalize && spec_.metric == Metric::Cosine;
+        return spec_.normalize; // && spec_.metric == Metric::Cosine;
 }
 
 float FlatIndex::score_f32(const float *q, const float *v) const {
@@ -17,6 +17,7 @@ float FlatIndex::score_f32(const float *q, const float *v) const {
         case Metric::L2:
                 return -math::kernels::l2_squared(q, v, spec_.dim);
         }
+        return 0.0f;
 }
 
 void FlatIndex::add(std::span<const long long> ids,
