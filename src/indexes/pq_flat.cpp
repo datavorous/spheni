@@ -13,6 +13,8 @@ PQFlatIndex::PQFlatIndex(const PQFlatSpec &spec) : spec_(spec) {
                                                        spec_.ksub);
 }
 
+PQFlatIndex::~PQFlatIndex() = default;
+
 bool PQFlatIndex::should_normalize() const {
         return spec_.normalize; // && spec_.metric == Metric::Cosine;
 }

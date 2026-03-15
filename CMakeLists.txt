@@ -10,6 +10,7 @@ add_library(spheni STATIC
     src/indexes/ivf.cpp
     src/math/kmeans.cpp
     src/indexes/pq_flat.cpp
+    src/indexes/ivf_pq.cpp
 )
 
 target_include_directories(spheni
@@ -21,12 +22,12 @@ target_compile_options(spheni PRIVATE
     -O3 -march=native -ffast-math -fno-exceptions -fno-rtti
 )
 
-foreach(ex flat ivf pq_flat)
-    add_executable(example_${ex} examples/${ex}.cpp)
-    target_link_libraries(example_${ex} PRIVATE spheni)
-endforeach()
+# foreach(ex flat ivf pq_flat ivf_pq)
+#     add_executable(example_${ex} examples/${ex}.cpp)
+#     target_link_libraries(example_${ex} PRIVATE spheni)
+# endforeach()
 
-foreach(ex flat ivf)
-    add_executable(benchmark_${ex} benchmarks/${ex}.cpp)
-    target_link_libraries(benchmark_${ex} PRIVATE spheni)
-endforeach()
+# foreach(ex flat ivf)
+#     add_executable(benchmark_${ex} benchmarks/${ex}.cpp)
+#     target_link_libraries(benchmark_${ex} PRIVATE spheni)
+# endforeach()

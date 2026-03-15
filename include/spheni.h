@@ -1,8 +1,11 @@
 #pragma once
-#include "../src/math/pq.h"
 #include <memory>
 #include <span>
 #include <vector>
+
+namespace spheni::math {
+class ProductQuantizer;
+}
 
 namespace spheni {
 
@@ -20,6 +23,13 @@ struct IVFSpec : Spec {
 };
 
 struct PQFlatSpec : Spec {
+        int M = 8;
+        int ksub = 256;
+};
+
+struct IVFPQSpec : Spec {
+        int nlist = 256;
+        int nprobe = 8;
         int M = 8;
         int ksub = 256;
 };
@@ -66,6 +76,7 @@ class IVFIndex {
 class PQFlatIndex {
       public:
         explicit PQFlatIndex(const PQFlatSpec &spec);
+        ~PQFlatIndex();
 
         void train(std::span<const float> vecs);
         void add(std::span<const long long> ids, std::span<const float> vecs);
@@ -84,5 +95,33 @@ class PQFlatIndex {
         std::vector<uint8_t> codes_;
         bool trained_ = false;
         bool should_normalize() const;
+};
+
+class IVFPQIndex {
+      public:
+        explicit IVFPQIndex(const IVFPQSpec &spec);
+        ~IVFPQIndex();
+        void train(std::span<const float> vecs);
+        void add(std::span<const long long> ids, std::span<const float> vecs);
+        std::vector<Hit> search(std::span<const float> query, int k) const;
+        long long size() const { return ntotal_; }
+
+        size_t compressed_bytes() const;
+        size_t uncompressed_bytes() const;
+
+      private:
+        IVFPQSpec spec_;
+        std::unique_ptr<math::ProductQuantizer> pq_;
+        std::vector<float> centroids_;
+        struct Cell {
+                std::vector<long long> ids;
+                std::vector<uint8_t> codes;
+        };
+        std::vector<Cell> cells_;
+
+        long long ntotal_ = 0;
+        bool trained_ = false;
+        bool should_normalize() const;
+        int nearest_centroid(const float *vec) const;
 };
 } // namespace spheni
