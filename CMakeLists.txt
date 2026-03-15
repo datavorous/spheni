@@ -27,7 +27,7 @@ target_compile_options(spheni PRIVATE
 #     target_link_libraries(example_${ex} PRIVATE spheni)
 # endforeach()
 
-# foreach(ex flat ivf)
-#     add_executable(benchmark_${ex} benchmarks/${ex}.cpp)
-#     target_link_libraries(benchmark_${ex} PRIVATE spheni)
-# endforeach()
+foreach(ex ivf_pq)
+    add_executable(benchmark_${ex} benchmarks/${ex}.cpp)
+    target_link_libraries(benchmark_${ex} PRIVATE spheni)
+endforeach()
