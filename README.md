@@ -25,10 +25,11 @@
 
 ## Overview
 
-The goal of Spheni is to be focused on memory efficiency rather than accuracy, and act a candidate generation system.  
-It implements *inverted indexing*, *residual quantization*, and *product quantization* to reduce memory usage while supporting fast similarity search. 
+The goal of Spheni is to be **focused on memory efficiency** rather than accuracy, and act a candidate generation system.
 
-With [**Cohere 1M Embeddings**](https://huggingface.co/datasets/makneeee/cohere_medium_1m), we achieve a **81x** compression (2.93GB to 35.8MB) with IVF-PQ, essentially storing `~27M vectors/GB` as compared to our previous `~349K vectors/GB` with `~48.4%` recall@10.
+It implements *inverted indexing* and *product quantization* with *residual encoding* to reduce memory usage while supporting fast similarity search. 
+
+With [**Cohere 1M Embeddings**](https://huggingface.co/datasets/makneeee/cohere_medium_1m), the current benchmark reports up to **213.9x** compression (**13.69 MB** index at M=8) and up to **94.20% Recall@10-in-100** (M=64, nprobe=32), with the baseline at **80.1x** compression and **83.25% Recall@10-in-100** (M=32, nprobe=32).
 
 ## Features
 
@@ -97,7 +98,7 @@ Detailed public API documentation is available in [docs/api-reference.md](docs/a
 
 ## Benchmarks
 
-Report WIP (for this `rewrite`)  
+[Current Benchmark Report](docs/benchmark.md) (single-core run, 200 queries, Recall@k-in-100).  
 [Legacy Report](docs/legacy/benchmarks/benchmarks.md) is also available.
 
 ## Roadmap
