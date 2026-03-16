@@ -18,16 +18,17 @@
 1. [Overview](#overview)
 2. [Features](#features)
 3. [Getting Started](#getting-started)
-4. [Benchmarks](#benchmarks)
-5. [Roadmap](#roadmap)
-6. [References](#references)
+4. [API Reference](#api-reference)
+5. [Benchmarks](#benchmarks)
+6. [Roadmap](#roadmap)
+7. [References](#references)
 
 ## Overview
 
-The goal of Spheni is to be focused on memory efficiency rather than accuracy.  
+The goal of Spheni is to be focused on memory efficiency rather than accuracy, and act a candidate generation system.  
 It implements *inverted indexing*, *residual quantization*, and *product quantization* to reduce memory usage while supporting fast similarity search. 
 
-With [**Cohere 1M Embeddings**](https://huggingface.co/datasets/makneeee/cohere_medium_1m), we achieve a **81x** compression (2.93GB to 35.8MB) with IVF-PQ, essentially storing `~27M vectors/GB` as compared to our previous `~349K vectors/GB` with `~70%` recall@10.
+With [**Cohere 1M Embeddings**](https://huggingface.co/datasets/makneeee/cohere_medium_1m), we achieve a **81x** compression (2.93GB to 35.8MB) with IVF-PQ, essentially storing `~27M vectors/GB` as compared to our previous `~349K vectors/GB` with `~48.4%` recall@10.
 
 ## Features
 
@@ -89,6 +90,11 @@ int main() {
         return 0;
 }
 ```
+
+## API Reference
+
+Detailed public API documentation is available in [docs/api-reference.md](docs/api-reference.md).
+
 ## Benchmarks
 
 Report WIP (for this `rewrite`)  
